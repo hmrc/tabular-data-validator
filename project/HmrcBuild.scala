@@ -26,7 +26,7 @@ object HmrcBuild extends Build {
   import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
   import de.heikoseeberger.sbtheader.HeaderPlugin
 
-  val nameApp = "data-validation"
+  val nameApp = "tabular-data-validator"
   val versionApp = "1.0.0"
 
   val appDependencies = Seq(
