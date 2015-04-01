@@ -27,7 +27,7 @@ object HmrcBuild extends Build {
   import de.heikoseeberger.sbtheader.HeaderPlugin
 
   val nameApp = "tabular-data-validator"
-  val versionApp = "1.0.0"
+  val versionApp = "1.0.1-SNAPSHOT"
 
   val appDependencies = Seq(
     "org.mvel" % "mvel2" % "2.2.0.Final",
