@@ -27,7 +27,7 @@ object HmrcBuild extends Build {
   import de.heikoseeberger.sbtheader.HeaderPlugin
 
   val nameApp = "data-validation"
-  val versionApp = "1.0.0-SNAPSHOT"
+  val versionApp = "1.0.0"
 
   val appDependencies = Seq(
     "org.mvel" % "mvel2" % "2.2.0.Final",
