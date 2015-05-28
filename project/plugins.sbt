@@ -1,12 +1,8 @@
-logLevel := Level.Warn
+resolvers += Resolver.url("hmrc-sbt-plugin-releases",
+  url("https://dl.bintray.com/hmrc/sbt-plugin-releases"))(Resolver.ivyStylePatterns)
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-utils" % "2.2.0")
+resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.3.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "0.5.0")
 
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.7")
-
-
-
+addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "0.4.0")

@@ -16,18 +16,16 @@
  *
  */
 
-import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import sbt.Keys._
 import sbt._
+import uk.gov.hmrc.SbtAutoBuildPlugin
+import uk.gov.hmrc.versioning.SbtGitVersioning
 
 object HmrcBuild extends Build {
   import uk.gov.hmrc.DefaultBuildSettings
-  import DefaultBuildSettings._
-  import uk.gov.hmrc.{SbtBuildInfo, ShellPrompt}
-  import de.heikoseeberger.sbtheader.HeaderPlugin
+  import uk.gov.hmrc.DefaultBuildSettings._
 
   val nameApp = "tabular-data-validator"
-  val versionApp = "1.0.1-SNAPSHOT"
 
   val appDependencies = Seq(
     "org.mvel" % "mvel2" % "2.2.0.Final",
@@ -37,37 +35,16 @@ object HmrcBuild extends Build {
     "net.sf.opencsv" % "opencsv" % "2.3" % "test"
   )
 
-  lazy val playBreadcrumb = Project(nameApp, file("."))
-    .settings(version := versionApp)
-    .settings(scalaSettings : _*)
-    .settings(defaultSettings(false) : _*)
+  lazy val project = Project(nameApp, file("."))
+    .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning)
     .settings(
       targetJvm := "jvm-1.7",
-      shellPrompt := ShellPrompt(versionApp),
       libraryDependencies ++= appDependencies,
       organization := "uk.gov.hmrc",
       resolvers := Seq(
-        Opts.resolver.sonatypeReleases,
-        Opts.resolver.sonatypeSnapshots,
-        "typesafe-releases" at "http://repo.typesafe.com/typesafe/releases/",
-        "typesafe-snapshots" at "http://repo.typesafe.com/typesafe/snapshots/",
-        "typesafe-mwn" at "http://repo.typesafe.com/typesafe/maven-releases/"
+        Resolver.bintrayRepo("hmrc", "releases"),
+        "typesafe-releases" at "http://repo.typesafe.com/typesafe/releases/"
       ),
       testOptions in Test += Tests.Argument("-oD","-u", "target/test-reports", "-h", "target/test-reports/html-report")
     )
-    .settings(SbtBuildInfo(): _*)
-    .enablePlugins(AutomateHeaderPlugin)
-    .settings(HeaderSettings())
-
-
-}
-
-
-
-object HeaderSettings {
-
-  import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
-  import de.heikoseeberger.sbtheader.license.Apache2_0
-
-  def apply() = headers := Map("scala" -> Apache2_0("2015", "HM Revenue & Customs"))
 }
