@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ object CellDef {
     val rules: Option[List[Rule]] =
       parseConfigListOpt(RULE_REF, cellConfig) {refConfig => ruleRefResolver.toRule(RuleRef(refConfig))}.orElse(Some(Nil))
 
-    // always add mandatory rule to a cell, further it will be processed by engine depending on cell's mandatoery flag
+    // always add mandatory rule to a cell, further it will be processed by engine depending on cell's mandatory flag
     val mandaRule: Rule = ruleRefResolver.MANDATORY_RULE
 
     CellDef(column = column,

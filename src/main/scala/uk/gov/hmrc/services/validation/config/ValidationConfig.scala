@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import ParseUtils._
 import uk.gov.hmrc.services.validation.Utils
 
 
-class ValidationConfig(val validationConfig: Config) extends RuleRefResolver {
+class ValidationConfig(validationConfig: Config) extends RuleRefResolver {
 
   val script: Option[String] = getStringListOpt(validationConfig, "definitions.script").map(_.mkString("\n"))
 
