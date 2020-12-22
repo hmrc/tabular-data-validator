@@ -32,7 +32,7 @@ val appDependencies = Seq(
 lazy val project = Project(appName, file("."))
   .enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning, SbtArtifactory)
   .settings(
-    majorVersion := 1,
+    majorVersion := 0,
     scalaSettings,
     defaultSettings(),
     scalaVersion := "2.12.12",
