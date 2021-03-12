@@ -70,7 +70,7 @@ class RuleTest extends WordSpec with Matchers {
       rule.errorId shouldBe(ruledef.errorId)
       rule.errorMsg shouldBe(ruledef.errorMsg)
       rule.parameters shouldBe(None)
-      rule.expr shouldBe(ruledef.expr.right.get)
+      rule.regex shouldBe(ruledef.expr.right.get)
       //todo: how to check equality of compiled expressions ???
       rule.compiledExpr.toString shouldBe(COMPILED_EXPR.toString)
     }
@@ -91,7 +91,7 @@ class RuleTest extends WordSpec with Matchers {
       rule.errorId shouldBe(ruleref.errorId.get)
       rule.errorMsg shouldBe(ruleref.errorMsg.get)
       rule.parameters shouldBe(ruleref.parameters)
-      rule.expr shouldBe(PARSED_EXPR_TEMPLATE)
+      rule.regex shouldBe(PARSED_EXPR_TEMPLATE)
       //todo: how to check equality of compiled expressions ???
       rule.compiledExpr.toString shouldBe(COMPILED_EXPR_TEMPLATE.toString)
     }
@@ -100,8 +100,8 @@ class RuleTest extends WordSpec with Matchers {
 
       // map values - templates booleans
       val m: Map[Rule, Boolean] = Map(
-        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG, parameters = PARAMS_OPT, expr = EXPRESSION, compiledExpr = COMPILED_EXPR) -> false,
-        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG_TEMPLATE, parameters = PARAMS_OPT, expr = EXPRESSION, compiledExpr = COMPILED_EXPR) -> true
+        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG, parameters = PARAMS_OPT, regex = EXPRESSION, compiledExpr = COMPILED_EXPR) -> false,
+        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG_TEMPLATE, parameters = PARAMS_OPT, regex = EXPRESSION, compiledExpr = COMPILED_EXPR) -> true
       )
 
       m.foreach{ case (rule, msgtempl) =>

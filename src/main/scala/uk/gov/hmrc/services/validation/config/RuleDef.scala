@@ -20,6 +20,8 @@ import ParseUtils._
 import com.typesafe.config.Config
 import uk.gov.hmrc.services.validation.Utils
 
+import scala.util.{Success, Try}
+
 /**
  * This is a definition, template of the rule.
  * From that definition the actual rule should be created.
@@ -29,16 +31,18 @@ import uk.gov.hmrc.services.validation.Utils
  * @param errorMsg
  * @param expr
  */
-case class RuleDef(id: String, errorId: String, errorMsg: Either[String, String], expr: Either[String, String]) {
+case class RuleDef(id: String, errorId: String, errorMsg: Either[String, String],
+                   expr: Option[Either[String, String]], isDate: Option[Boolean]) {
   require(!id.isEmpty)
   require(!errorId.isEmpty)
+  require(if(expr.isDefined) !isDate.contains(true) else isDate.contains(true)) //TODO cleanup later
 
 
   def isTemplateErrorMsg: Boolean = errorMsg.isLeft
   def isPlainErrorMsg: Boolean = errorMsg.isRight
 
-  def isTemplateExpression: Boolean = expr.isLeft
-  def isPlainExpression: Boolean = expr.isRight
+  def isTemplateExpression: Boolean = expr.isDefined && expr.getOrElse(Right()).isLeft
+  def isPlainExpression: Boolean = expr.isDefined && expr.getOrElse(Left()).isRight
 
 }
 
@@ -47,20 +51,24 @@ object RuleDef {
   val ERROR_ID = "errorId"
   val ERROR_MSG = "errorMsg"
   val ERROR_MSG_TEMPLATE = "errorMsgTemplate"
-  val EXPR = "expr"
+  val EXPR = "regex"
   val EXPR_TEMPLATE = "exprTemplate"
+  val DATE_FLAG = "isDate"
 
   def apply(ruleConfig: Config): RuleDef = {
     val id = ruleConfig.getString(RULE_ID)
     val errorId = ruleConfig.getString(ERROR_ID)
+    val isDate = Try(ruleConfig.getBoolean(DATE_FLAG)).toOption
 
     val errorMsgEither = eitherConfig(Left(ERROR_MSG_TEMPLATE), Right(ERROR_MSG), ruleConfig)
-    val exprEither = eitherConfig(Left(EXPR_TEMPLATE), Right(EXPR), ruleConfig)
+    val exprEither = eitherConfigOpt(Left(EXPR_TEMPLATE), Right(EXPR))(ruleConfig)
 
     RuleDef(id = id,
       errorId = errorId,
       errorMsg = errorMsgEither,
-      expr = exprEither)
+      expr = exprEither,
+      isDate = isDate
+    )
   }
 
 }
@@ -111,14 +119,14 @@ object RuleRef {
  * @param id
  * @param errorId
  * @param errorMsg
- * @param expr
+ * @param regex
  */
 case class Rule(id: String,
                 errorId: String,
                 errorMsg: Either[String, String],
                 parameters: Option[Map[String, String]],
-                expr: String,
-                compiledExpr: java.io.Serializable) {
+                isDate: Boolean,
+                regex: Option[String]) {
   def isTemplateErrorMsg: Boolean = errorMsg.isLeft
   def isPlainErrorMsg: Boolean = errorMsg.isRight
 }
@@ -126,7 +134,7 @@ case class Rule(id: String,
 
 object Rule {
 
-  def apply(ruleDef: RuleDef, ruleRefOpt: Option[RuleRef], baseScript: Option[String]): Rule = {
+  def apply(ruleDef: RuleDef, ruleRefOpt: Option[RuleRef]): Rule = {
     //todo add more requirements
     require(ruleRefOpt.map{_.id == ruleDef.id}.getOrElse(true))
 
@@ -134,23 +142,26 @@ object Rule {
     val errorMsg: Either[String, String] = ruleRefOpt.flatMap(_.errorMsg).getOrElse(ruleDef.errorMsg)
     val parametersOpt: Option[Map[String, String]] = ruleRefOpt.flatMap(_.parameters)
 
-    val expr: String =
+    val expr: Option[String] = {
+      ruleDef.expr match {
+        case Some(value) =>
       if (ruleDef.isTemplateExpression) {
         //endorse template expression
-        val template = ruleDef.expr.left.get
-        Utils.parseTemplate(template, parametersOpt.getOrElse(Map()))
+        value.left.toOption.map(Utils.parseTemplate(_, parametersOpt.getOrElse (Map () ) ))
       } else {
-        ruleDef.expr.right.get
+        value.right.toOption
       }
+      }
+    }
 
-    val compiledExpr = Utils.compileExpression(expr, baseScript)
+    val isDateFlag: Boolean = ruleDef.isDate.contains(true)
 
     Rule(id = ruleDef.id,
       errorId = errorId,
       errorMsg = errorMsg,
       parameters = parametersOpt,
-      expr = expr,
-      compiledExpr = compiledExpr
+      isDate = isDateFlag,
+      regex = expr // the Regex (optional)
     )
 
   }

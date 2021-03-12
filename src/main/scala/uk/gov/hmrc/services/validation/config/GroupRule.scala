@@ -27,13 +27,12 @@ case class GroupRule(id: String,
                    expr: String,
                    compiledExpr: java.io.Serializable) {
   /*
-      id="mandatoryGHI"
+      id="mandatoryH"
       errorId="002"
-      columns:["G", "H", "I"]
-      expr="notEmpty(dataG) || notEmpty(dataH) || notEmpty(dataI)"
+      columns:["G", "H"]
+      expr="if (notEmpty(dataG)) notEmpty(dataH)"
       columnErrors: {
-        "G": {errorMsgTemplate = "'@{cellNameG}' or '@{cellNameH}' or '@{cellNameI}' must have an entry."}
-        "I": {errorMsg = "Field must have an entry."}
+        "H": {errorMsgTemplate = "'@{cellNameH}' must have an entry."}
       }
    */
 
@@ -43,7 +42,7 @@ case class GroupRule(id: String,
 
 object GroupRule {
 
-  def apply(rowConfig: Config, baseScript: Option[String]): GroupRule = {
+  def apply(rowConfig: Config): GroupRule = {
     implicit val implicitConfig = rowConfig
     val id = rowConfig.getString(RuleDef.RULE_ID)
     val errorId = rowConfig.getString(RuleDef.ERROR_ID)
@@ -62,8 +61,8 @@ object GroupRule {
       }
     }.filter(_ != None).flatten.toMap
 
-    val expr = rowConfig.getString("expr")
-    val compiledExpr = Utils.compileExpression(expr, baseScript)
+    val expr = rowConfig.getString("regex")
+    val compiledExpr = Utils.compileExpression(expr)
 
     GroupRule(id = id,
       errorId = errorId,

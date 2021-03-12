@@ -19,32 +19,52 @@ package uk.gov.hmrc.services.validation
 import org.mvel2.MVEL
 import org.mvel2.templates.TemplateRuntime
 
+import java.text.SimpleDateFormat
+import scala.annotation.tailrec
+import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions._
 import scala.collection.convert.Wrappers
 
 object Utils {
-  def parseTemplate(template: String, parameters: Map[String, String]): String =
-    TemplateRuntime.eval(template, mapAsJavaMap(parameters)) match {
-      case s: String => s
+  def parseTemplate(template: String, parameters: Map[String, String]): String = {
+
+    def replaceAllEntries(template: String, replacements: Seq[(String, String)]): String = {
+      template.replace(s"@{${replacements.head._1}}", replacements.head._2)
     }
 
-  def compileExpression(expression: String, baseScript: Option[String]): java.io.Serializable = {
-    val exprToCompile = baseScript.map(_ + "\n" + expression).getOrElse(expression)
-     compileExpression(exprToCompile)
+    @tailrec
+    def replaceUntilMapIsEmpty(template: String, parameters: Seq[(String, String)]): String = {
+      if (parameters.isEmpty) template
+      else replaceUntilMapIsEmpty(replaceAllEntries(template, parameters), parameters.tail)
+    }
+
+    replaceUntilMapIsEmpty(template, parameters.toSeq)
   }
 
   def compileExpression(expression: String): java.io.Serializable = MVEL.compileExpression(expression)
 
-  def executeExpression(compiledExp: java.io.Serializable, contextObjectOpt: Option[AnyRef], vars: Map[String, Any]): Option[Any] = {
+  def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Boolean = {
 
-      val varsJavaMap = mutableMapAsJavaMap[String, Any](collection.mutable.Map(vars.toSeq: _*))
-//      println(contextObjectOpt)
-      contextObjectOpt.map{ ctx => MVEL.executeExpression(compiledExp, ctx, varsJavaMap)}
-      .getOrElse(MVEL.executeExpression(compiledExp, varsJavaMap)) match {
-        case Wrappers.SeqWrapper(f) => Some(f.toList)
-        case f: org.mvel2.util.FastList[_] => Some(f.toArray.toList)
-        case a: Any => Some(a)
+    if (isDate) {
+      Try {
+        new SimpleDateFormat("yyyy-mm-dd").parse(cellValue)
+      } match {
+        case Failure(_) => false
+        case Success(_) => true
       }
+    } else {
+      cellValue.matches(regex.get)
+    }
+//      val varsJavaMap = mutableMapAsJavaMap[String, String](collection.mutable.Map(vars.toSeq: _*))
+////      println(contextObjectOpt)
+//      val test = (MVEL.executeExpression(regex, varsJavaMap)) match {
+//        case Wrappers.SeqWrapper(f) => Some(f.toList)
+//        case f: org.mvel2.util.FastList[_] => Some(f.toArray.toList)
+//        case a: Any => Some(a)
+//      }
+  }
 
+  def compareCellsToGroupRule(requirementCondition: String, conditionDictator: String, dependentValue: String): Boolean = {
+    if (conditionDictator == requirementCondition) dependentValue.nonEmpty else true
   }
 }

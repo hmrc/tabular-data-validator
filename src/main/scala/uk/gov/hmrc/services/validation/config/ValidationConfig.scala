@@ -34,7 +34,7 @@ class ValidationConfig(validationConfig: Config) extends RuleRefResolver {
   val cellsByColumn: Map[String, CellDef] = cells.map(c => c.column -> c).toMap
   val cellsByName: Map[String, CellDef] = cells.map(c => c.cellName -> c).toMap
 
-  val groupRules: Option[List[GroupRule]] = parseConfigListOpt("group-rules", validationConfig){GroupRule(_, script)}
+  val groupRules: Option[List[GroupRule]] = parseConfigListOpt("group-rules", validationConfig){GroupRule(_)}
 
 }
 
@@ -45,10 +45,10 @@ trait RuleRefResolver {
 
   def toRule(ruleRef: RuleRef): Rule = {
     val ruleDef = ruleDefs(ruleRef.id)
-    Rule(ruleDef, Some(ruleRef), script)
+    Rule(ruleDef, Some(ruleRef))
   }
 
   def toRule(ruleDef: RuleDef): Rule = {
-    Rule(ruleDef, None, script)
+    Rule(ruleDef, None)
   }
 }

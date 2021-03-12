@@ -27,70 +27,63 @@ trait DataValidator {
   /**
    *
    * @param rows              - the data to validate
-   * @param contextObjectOpt  - a helper object to support the validation rules
    * @param firstRowNum       - all errors contain the row number... specify the staring number here.
    * @param ignoreBlankRows   - shall we ignore completely blank rows?
    * @return                  - None or Some List of Validation errors
    */
-  def validateRows(rows: List[List[String]], contextObjectOpt: Option[AnyRef], firstRowNum : Int, ignoreBlankRows : Boolean): Option[List[ValidationError]]
+  def validateRows(rows: List[List[String]], firstRowNum : Int, ignoreBlankRows : Boolean): Option[List[ValidationError]]
 
   /**
    *
    * @param rows              - the data to validate
    * @param errorBuffer            - a ListBuffer you wish to collate your errors in
-   * @param contextObjectOpt  - a helper object to support the validation rules
    * @param firstRowNum       - all errors contain the row number... specify the staring number here.
    * @param ignoreBlankRows   - shall we ignore completely blank rows?
    */
-  def validateRowsBuffered(rows: List[List[String]], errorBuffer : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef], firstRowNum : Int, ignoreBlankRows : Boolean)
+  def validateRowsBuffered(rows: List[List[String]], errorBuffer : ListBuffer[ValidationError],, firstRowNum : Int, ignoreBlankRows : Boolean)
 
   /**
    *
    * @param rows              - the data to validate
-   * @param contextObjectOpt  - a helper object to support the validation rules
    * @param zeroBased         - will the first row be treated as 0 or 1?
    * @return                  - None or Some List of Validation errors
    */
-  def validateRows(rows: List[List[String]], contextObjectOpt: Option[AnyRef], zeroBased: Boolean = true) : Option[List[ValidationError]]
+  def validateRows(rows: List[List[String]], zeroBased: Boolean = true) : Option[List[ValidationError]]
 
   /**
    *
    * @param cell             - The cell you wish to validate
    * @param errorBuffer      - a ListBuffer you wish to collate your errors in
-   * @param contextObjectOpt - a helper object to support the validation rules
    */
-  def validateCellBuffered(cell: Cell, errorBuffer : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef] = None) : Unit
+  def validateCellBuffered(cell: Cell, errorBuffer : ListBuffer[ValidationError]) : Unit
 
   /**
    *
    * @param row               - The rows you wish to validate
    * @param errorBuffer       - a ListBuffer you wish to collate your errors in
-   * @param contextObjectOpt - a helper object to support the validation rules
    */
-  def validateRowBuffered(row: Row, errorBuffer : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef] = None) : Unit
+  def validateRowBuffered(row: Row, errorBuffer : ListBuffer[ValidationError]) : Unit
 
   /**
    *
    * @param cell              - The cell you wish to validate
-   * @param contextObjectOpt - a helper object to support the validation rules
    * @return                  - None or Some with a List of all the errors
    */
-  def validateCell(cell: Cell, contextObjectOpt: Option[AnyRef] = None): Option[List[ValidationError]]
+  def validateCell(cell: Cell): Option[List[ValidationError]]
 
   /**
    *
    * @param row               - The row you wish to validate
-   * @param contextObjectOpt  - a helper object to support the validation rules
    * @return                  - None or Some with a List of all the errors
    */
-  def validateRow(row: Row, contextObjectOpt: Option[AnyRef] = None): Option[List[ValidationError]]
+  def validateRow(row: Row): Option[List[ValidationError]]
 
 }
 
-case class Row(rowNum: Int, cells: Seq[Cell]) {
+case class Row(rowNum: Int, cells: Seq[Cell]) { // seq of cells = Seq(("A", 1, 123), ("B", 1, yes), ("C", 1, yes), ("D", 1, Tables))
   require(cells.forall(_.row == rowNum))
 
-  val cellsByColumn: Map[String, Cell] = cells.map{c => c.column -> c}.toMap
+  val cellsByColumn: Map[String, Cell] = cells.map{c => c.column -> c}.toMap // Map("A" -> ("A", 1, 123), ...)
 }
 
 case class Cell(column: String, row: Int, value: String)
@@ -114,40 +107,28 @@ object DataValidator {
    */
   def apply(validationConfig: Config): DataValidator = new DataValidatorImpl(validationConfig)
 
-  @Deprecated // validateRows left in for compatability... Deprecated
-  def validateRows(rows : List[List[String]], validationConfig :Config, contextObjectOpt : Option[AnyRef], zeroBased : Boolean = true) : Option[List[ValidationError]] = {
-    DataValidator(validationConfig).validateRows(rows, contextObjectOpt, zeroBased)
-  }
-
-  @Deprecated // validateRows left in for compatability... Deprecated
-  def validateRows(rows :List[List[String]], validationConfig : Config, contextObjectOpt : Option[AnyRef], firstRowNum : Int, ignoreBlankRows : Boolean) : Option[List[ValidationError]] = {
-    DataValidator(validationConfig).validateRows(rows, contextObjectOpt, firstRowNum, ignoreBlankRows)
-  }
-
-
   ///////////////////////////////////////////////////////////////////////
   private class DataValidatorImpl(validationConfig: Config) extends DataValidator {
 
     val cfg = new ValidationConfig(validationConfig)
 
-    def validateRows(rows: List[List[String]], contextObjectOpt: Option[AnyRef], zeroBased: Boolean = true) : Option[List[ValidationError]] = {
+    def validateRows(rows: List[List[String]], zeroBased: Boolean = true) : Option[List[ValidationError]] = {
       val firstRowNum = if (zeroBased) 0 else 1
-      validateRows(rows, contextObjectOpt, firstRowNum, false)
+      validateRows(rows, firstRowNum, false)
     }
 
     /**
      *
      * @param rows              - the data to validate
-     * @param contextObjectOpt  - a helper object to support the validation rules
      * @param firstRowNum       - all errors contain the row number... specify the staring number here.
      * @param ignoreBlankRows   - shall we ignore completely blank rows?
      * @return                  - None or Some List of Validation errors
      */
-    def validateRows(rows: List[List[String]], contextObjectOpt: Option[AnyRef], firstRowNum : Int, ignoreBlankRows : Boolean): Option[List[ValidationError]] = {
+    def validateRows(rows: List[List[String]], firstRowNum : Int, ignoreBlankRows : Boolean): Option[List[ValidationError]] = {
 
       val errorBuffer: ListBuffer[ValidationError] = ListBuffer()
 
-      validateRowsBuffered(rows, errorBuffer, contextObjectOpt, firstRowNum, ignoreBlankRows)
+      validateRowsBuffered(rows, errorBuffer, firstRowNum, ignoreBlankRows)
 
       if (errorBuffer.length == 0) {
         None
@@ -160,11 +141,10 @@ object DataValidator {
      *
      * @param rows              - the data to validate
      * @param errorBuffer       - a ListBuffer you wish to collate your errors in
-     * @param contextObjectOpt  - a helper object to support the validation rules
      * @param firstRowNum       - all errors contain the row number... specify the staring number here.
      * @param ignoreBlankRows   - shall we ignore completely blank rows?
      */
-    override def validateRowsBuffered(rows: List[List[String]], errorBuffer: ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef], firstRowNum: Int, ignoreBlankRows: Boolean): Unit = {
+    override def validateRowsBuffered(rows: List[List[String]], errorBuffer: ListBuffer[ValidationError], firstRowNum: Int, ignoreBlankRows: Boolean): Unit = {
 
       val colIndexCache : MutableMap[Int,String] = MutableMap()
 
@@ -202,28 +182,33 @@ object DataValidator {
         val populatedRow = cells.exists(cell => cell.value.nonEmpty)
 
         if (populatedRow || (!populatedRow && !ignoreBlankRows)) {
-          validateRowBuffered(Row(rowNum, cells), errorBuffer, contextObjectOpt)
+          validateRowBuffered(Row(rowNum, cells), errorBuffer)
         }
         rowNum + 1
       }
     }
 
-    override def validateCellBuffered(cell: Cell, errors : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef] ) : Unit = {
+    override def validateCellBuffered(cell: Cell, errors : ListBuffer[ValidationError]) : Unit = {
 
       val celldef: CellDef = cfg.cellsByColumn(cell.column)
       val rules: List[Rule] = celldef.rules
       val datamap: Map[String, String] = Map("data" -> cell.value)
 
       for (rule <- rules) {
-        val ruleresult: Option[Any] = Utils.executeExpression(rule.compiledExpr, contextObjectOpt, datamap)
+        val ruleresult: Option[Any] = Utils.compareCellToRule(rule.regex, rule.isDate, datamap)
         if (ruleresult != Some(true)) {
           // validation fails - create error result
           val errorMsg =
             if (rule.isTemplateErrorMsg) {
               val template = rule.errorMsg.left.get
+              println("so the rule was " + rule)
+              println("template is " + template)
               val msgmap: Map[String, String] = Map("cellName" -> celldef.cellName, "column" -> celldef.column) ++
                 rule.parameters.getOrElse(Map())
-              Utils.parseTemplate(template, msgmap)
+              println("message map is " + msgmap)
+              val result = Utils.parseTemplate(template, msgmap)
+              println("result is " + result)
+              result
             } else {
               rule.errorMsg.right.get
             }
@@ -243,10 +228,18 @@ object DataValidator {
       }
     }
 
-    override def validateRowBuffered(row: Row, errors : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef] ) : Unit = {
+    override def validateRowBuffered(row: Row, errors : ListBuffer[ValidationError]) : Unit = {
 
       for {rule <- cfg.groupRules.getOrElse(Nil)
-          if rule.columns.forall(row.cellsByColumn.contains)} {
+          if rule.columns.forall(column => row.cellsByColumn.contains(column))} { // 123,yes,yes,Tables; group rule: if C is 'yes', D has to be present
+        /*
+        C is mandatory, D is not
+        groupRule: columns = ["C", "D"]
+        "123,no,yes"
+        C <- row contains C, proceed
+        D <- row does not contain D, do not proceed
+        Map("A" -> ("A", 1, 123), "B" -> ("B", 1, no), "C" -> ("C", 1, yes))
+         */
         val columns = rule.columns
         val cells: Set[Cell] = columns.map { column => row.cellsByColumn(column)} // todo WHAT IF COLUMN DOES NOT EXIST IN ROW?
         val celldefs: Set[CellDef] = columns.map{cfg.cellsByColumn(_)} // todo WHAT IF COLUMNDEF DOES NOT EXIST ?
@@ -254,7 +247,7 @@ object DataValidator {
             map + (s"data${cell.column}" -> cell.value)
           }
 
-        val ruleresult: Option[Any] = Utils.executeExpression(rule.compiledExpr, contextObjectOpt, datamap)
+        val ruleresult: Option[Any] = Utils.compareCellsToGroupRule(rule.compiledExpr, datamap.values)
         if (ruleresult != Some(true)) {
           // validation fails - create error results
           val msgmap: Map[String, String] = Map("row" -> row.rowNum.toString) ++
@@ -277,14 +270,14 @@ object DataValidator {
       }
 
       row.cells.foreach{
-        cell =>  validateCellBuffered(cell, errors, contextObjectOpt)
+        cell =>  validateCellBuffered(cell, errors)
       }
     }
 
-    override def validateCell(cell: Cell, contextObjectOpt: Option[AnyRef]): Option[List[ValidationError]] = {
+    override def validateCell(cell: Cell): Option[List[ValidationError]] = {
       val errors = ListBuffer[ValidationError]()
 
-      validateCellBuffered(cell: Cell, errors : ListBuffer[ValidationError], contextObjectOpt: Option[AnyRef] )
+      validateCellBuffered(cell: Cell, errors : ListBuffer[ValidationError])
 
       if (errors.length > 0 ) {
         Some(errors.toList)
@@ -293,13 +286,13 @@ object DataValidator {
       }
     }
 
-    override def validateRow(row: Row, contextObjectOpt: Option[AnyRef]): Option[List[ValidationError]] = {
+    override def validateRow(row: Row): Option[List[ValidationError]] = {
 
       val errors = ListBuffer[ValidationError]()
 
-      validateRowBuffered(row, errors , contextObjectOpt)
+      validateRowBuffered(row, errors)
 
-      if (errors.length > 0 ) {
+      if errors.length > 0 ) {
         Some(errors.toList)
       } else {
         None

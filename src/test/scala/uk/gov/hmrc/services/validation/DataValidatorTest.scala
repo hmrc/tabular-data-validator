@@ -31,45 +31,31 @@ class DataValidatorTest extends WordSpec with Matchers{
       |       column: "A"
       |       cellName = "Greeting"
       |       mandatory: true
-      |       error: [
-      |         {
-      |           id: "custom"
-      |           errorId: "errorId_1"
-      |           errorMsgTemplate: "@{cellName} is not a helloworld."
-      |           expr: "data == \"Hello, World!\""
-      |         }
-      |       ]
       |     }
       |     {
       |       column: "B"
       |       cellName = "Optional comment"
-      |       mandatory: false
-      |       error: [
-      |         {
-      |           id: "custom.2"
-      |           errorId: "errorId_2"
-      |           errorMsg: "Comment must be polite!"
-      |           expr: "!data.contains(\"damn\")"
-      |         }
-      |       ]
+      |       mandatory: true
       |     }
       |     {
       |       column: "C"
       |       cellName = "Optional something"
-      |       mandatory: false
+      |       mandatory: true
       |     }
       |     {
       |       column: "D"
       |       cellName = "Optional D"
       |       mandatory: false
-      |       error: [
-      |         {
-      |           id: "custom.D"
-      |           errorId: "errorId_D"
-      |           errorMsgTemplate: "'@{cellName}' is too short!"
-      |           expr: "data.length() > 5"
-      |         }
-      |       ]
+      |     }
+      |     {
+      |       column: "C"
+      |       cellName = "Optional something"
+      |       mandatory: true
+      |     }
+      |     {
+      |       column: "D"
+      |       cellName = "Optional D"
+      |       mandatory: false
       |     }
       |   ]
       |
@@ -85,10 +71,9 @@ class DataValidatorTest extends WordSpec with Matchers{
       |    {
       |      id="mandatoryBCD"
       |      errorId="102"
-      |      columns:["B", "C", "D"]
-      |      expr="notEmpty(dataD) || notEmpty(dataB) || notEmpty(dataC)"
+      |      columns:["C", "D"]
+      |      expr="notEmpty(dataC) && notEmpty(dataD)"
       |      columnErrors: {
-      |        "B": {errorMsgTemplate = "'@{cellNameB}' or '@{cellNameC}' or '@{cellNameD}' must have an entry."}
       |        "C": {errorMsg = "Field must have an entry."}
       |      }
       |    }
@@ -288,13 +273,13 @@ class DataValidatorTest extends WordSpec with Matchers{
           |           id: "custom"
           |           errorId: "errorId_1"
           |           errorMsgTemplate: "@{cellName} is not in a range by functions."
-          |           expr: "data >= getMinValue() && data <= getMaxValue()"
+          |           regex: "data >= getMinValue() && data <= getMaxValue()"
           |         }
           |         {
           |           id: "custom.2"
           |           errorId: "errorId_2"
           |           errorMsgTemplate: "@{cellName} is not in a range by functions accessed as context bean properties."
-          |           expr: "data >= minValue && data <= maxValue"
+          |           regex: "data >= minValue && data <= maxValue"
           |         }
           |       ]
           |     }
@@ -311,7 +296,7 @@ class DataValidatorTest extends WordSpec with Matchers{
           |      id="A & B ranges"
           |      errorId="102"
           |      columns:["A", "B"]
-          |      expr="dataA <= maxValue && dataB >= getMinValue()"
+          |      regex="dataA <= maxValue && dataB >= getMinValue()"
           |      columnErrors: {
           |        "A": {errorMsgTemplate = "'@{cellNameA}' or '@{cellNameB}' is out of ranges."}
           |        "B": {errorMsg = "Check the value!"}
@@ -324,7 +309,7 @@ class DataValidatorTest extends WordSpec with Matchers{
           |       id="MANDATORY"
           |       errorId="002"
           |       errorMsgTemplate = "@{cellName} must have an entry."
-          |       expr="!(data == null || data.trim().isEmpty())"
+          |       regex="!(data == null || data.trim().isEmpty())"
           |     }
           |   ]
           | }
@@ -464,25 +449,25 @@ class DataValidatorTest extends WordSpec with Matchers{
           |           id: "custom"
           |           errorId: "errorId_1"
           |           errorMsgTemplate: "@{cellName} is not in a range by functions."
-          |           expr: "data >= getMinValue() && data <= getMaxValue()"
+          |           regex: "data >= getMinValue() && data <= getMaxValue()"
           |         }
           |         {
           |           id: "custom.2"
           |           errorId: "errorId_2"
           |           errorMsgTemplate: "@{cellName} is not in a range by functions accessed as context bean properties."
-          |           expr: "data >= minValue && data <= maxValue"
+          |           regex: "data >= minValue && data <= maxValue"
           |         }
           |         {
           |           id: "custom.3"
           |           errorId: "errorId_3"
           |           errorMsgTemplate: "@{cellName} is greater than value accessed as constant with prefix \"get\" in context ."
-          |           expr: "data <= constantMaxValue"
+          |           regex: "data <= constantMaxValue"
           |         }
           |         {
           |           id: "custom.4"
           |           errorId: "errorId_4"
           |           errorMsgTemplate: "@{cellName} is greater than val accessed as function."
-          |           expr: "data <= veryMaxValueVal()"
+          |           regex: "data <= veryMaxValueVal()"
           |         }
           |       ]
           |     }
@@ -494,7 +479,7 @@ class DataValidatorTest extends WordSpec with Matchers{
           |       id="MANDATORY"
           |       errorId="002"
           |       errorMsgTemplate = "@{cellName} must have an entry."
-          |       expr="!(data == null || data.trim().isEmpty())"
+          |       regex="!(data == null || data.trim().isEmpty())"
           |     }
           |   ]
           | }

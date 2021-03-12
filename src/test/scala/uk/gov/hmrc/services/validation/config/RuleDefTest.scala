@@ -43,12 +43,12 @@ class RuleDefTest extends WordSpec with Matchers {
 
   "RuleDef" should {
     val expected = Map(
-      "msg, expr" -> expectOk(id = ID, errorId = ERROR_ID, errorMsg = MSG, expr = EXPRESSION),
-      "msgTemplate, expr" -> expectOk(id = ID, errorId = ERROR_ID, errorMsgTemplate = MSG_TEMPL, expr = EXPRESSION),
+      "msg, regex" -> expectOk(id = ID, errorId = ERROR_ID, errorMsg = MSG, expr = EXPRESSION),
+      "msgTemplate, regex" -> expectOk(id = ID, errorId = ERROR_ID, errorMsgTemplate = MSG_TEMPL, expr = EXPRESSION),
       "msg, exprTemplate" -> expectOk(id = ID, errorId = ERROR_ID, errorMsg = MSG, exprTemplate = EXPR_TEMPL),
       "msgTemplate, exprTemplate" -> expectOk(id = ID, errorId = ERROR_ID, errorMsgTemplate = MSG_TEMPL, exprTemplate = EXPR_TEMPL)
     ) ++ Map(
-      "expr with neither msg nor msgTemplate" -> expectError(id = ID, errorId = ERROR_ID, expr = EXPRESSION),
+      "regex with neither msg nor msgTemplate" -> expectError(id = ID, errorId = ERROR_ID, expr = EXPRESSION),
       "exprTemplate with neither msg nor msgTemplate" -> expectError(id = ID, errorId = ERROR_ID, exprTemplate = EXPR_TEMPL)
     )
 
@@ -125,7 +125,7 @@ class RuleDefTest extends WordSpec with Matchers {
       |      id="MANDATORY"
       |      errorId="002"
       |      errorMsgTemplate = "@{cellName} must have an entry."
-      |      expr="!(data == null || data.trim().isEmpty())"
+      |      regex="!(data == null || data.trim().isEmpty())"
       |    }
     """.stripMargin
      */
@@ -137,7 +137,7 @@ class RuleDefTest extends WordSpec with Matchers {
       |      ${cfg("errorId", errorId)}
       |      ${cfg("errorMsg", errorMsg)}
       |      ${cfg("errorMsgTemplate", errorMsgTemplate)}
-      |      ${cfg("expr", expr)}
+      |      ${cfg("regex", expr)}
       |      ${cfg("exprTemplate", exprTemplate)}
       |    }
     """.stripMargin
