@@ -16,4 +16,22 @@
 
 package uk.gov.hmrc.services.validation.models
 
-case class GroupRuleFlags(independent: String, dependent: String)
+
+
+  case class Row(rowNum: Int, cells: Seq[Cell]) {
+    require(cells.forall(_.row == rowNum))
+
+    val cellsByColumn: Map[String, Cell] = cells.map { c => c.column -> c }.toMap
+  }
+
+  case class Cell(column: String, row: Int, value: String)
+
+  case class MissingCell(column: String, row: Int) {
+
+    def toCell: Cell = Cell(column, row, "")
+  }
+
+  case class ValidationError(cell: Cell, ruleId: String, errorId: String, errorMsg: String)
+
+  case class GroupRuleFlags(independent: String, dependent: String)
+

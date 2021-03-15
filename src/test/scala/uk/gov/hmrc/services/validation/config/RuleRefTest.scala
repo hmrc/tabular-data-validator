@@ -20,6 +20,7 @@ import java.io.StringReader
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
+import uk.gov.hmrc.services.validation.models.RuleRef
 
 /**
  * Created by user02 on 10/10/14.
