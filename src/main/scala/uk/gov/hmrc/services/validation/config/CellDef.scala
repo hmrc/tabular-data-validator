@@ -43,12 +43,12 @@ object CellDef {
       parseConfigListOpt(RULE_REF, cellConfig) {refConfig => ruleRefResolver.toRule(RuleRef(refConfig))}.orElse(Some(Nil))
 
     // always add mandatory rule to a cell, further it will be processed by engine depending on cell's mandatory flag
-    val mandaRule: Rule = ruleRefResolver.MANDATORY_RULE
+//    val mandaRule: Rule = ruleRefResolver.MANDATORY_RULE
 
     CellDef(column = column,
       cellName = cellName,
       mandatory = manda,
-      rules = mandaRule :: (cellRules.get ::: rules.get)
+      rules = /*mandaRule :: */(cellRules.get ::: rules.get)
     )
   }
 }

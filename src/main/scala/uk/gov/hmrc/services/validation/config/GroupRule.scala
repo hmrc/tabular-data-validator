@@ -19,13 +19,36 @@ package uk.gov.hmrc.services.validation.config
 import com.typesafe.config.Config
 import ParseUtils._
 import uk.gov.hmrc.services.validation.Utils
+import uk.gov.hmrc.services.validation.models.GroupRuleFlags
+import scala.util.{Try, Success, Failure}
+
+/*
+{
+    id="mandatoryL"
+    errorId="L01"
+    columns:["L", "K"]
+    expectedValue="no"
+    flags: {
+      independent: "K"
+      dependent: "L"
+    }
+    columnErrors: {
+      "L":  {errorMsgTemplate = ${validation-types.yes-no.errorMsg}}
+    }
+  }
+
+ */
+
 
 case class GroupRule(id: String,
                    errorId: String,
                    columns: Set[String],
                    columnErrors: Map[String, Either[String, String]], // key - column, value - Left for template, Right for messsage
-                   expr: String,
-                   compiledExpr: java.io.Serializable) {
+                   flags: GroupRuleFlags,
+                   expectedValue: String
+//                   expr: String,
+//                   compiledExpr: java.io.Serializable
+                    ) {
   /*
       id="mandatoryH"
       errorId="002"
@@ -43,7 +66,7 @@ case class GroupRule(id: String,
 object GroupRule {
 
   def apply(rowConfig: Config): GroupRule = {
-    implicit val implicitConfig = rowConfig
+    implicit val implicitConfig: Config = rowConfig
     val id = rowConfig.getString(RuleDef.RULE_ID)
     val errorId = rowConfig.getString(RuleDef.ERROR_ID)
 
@@ -59,16 +82,27 @@ object GroupRule {
       } else {
         None
       }
-    }.filter(_ != None).flatten.toMap
-
+    }.filter(_.isDefined).flatten.toMap
+/*
     val expr = rowConfig.getString("regex")
     val compiledExpr = Utils.compileExpression(expr)
+
+ */
+    val groupRulesFlags = getTryGroupRuleFlags(rowConfig, "flags") match {
+      case Success(flags) => flags
+      case Failure(exception) => throw exception
+    }
+
+    val expectedValue: String = rowConfig.getString("expectedValue")
 
     GroupRule(id = id,
       errorId = errorId,
       columns = columns,
       columnErrors = columnErrors,
-      expr = expr,
-      compiledExpr = compiledExpr)
+      flags = groupRulesFlags,
+      expectedValue = expectedValue
+//      expr = expr,
+//      compiledExpr = compiledExpr
+    )
   }
 }

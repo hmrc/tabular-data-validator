@@ -20,6 +20,7 @@ import java.io.File
 import org.scalatest.{Matchers, WordSpec}
 import uk.gov.hmrc.services.validation.{Cell, DataValidator, ValidationError}
 
+/*
 class StressTest extends WordSpec with Matchers {
 
   import FileHelper._
@@ -44,3 +45,5 @@ class StressTest extends WordSpec with Matchers {
     }
   }
 }
+
+ */

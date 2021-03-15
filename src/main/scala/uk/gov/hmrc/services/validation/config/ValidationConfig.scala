@@ -23,16 +23,16 @@ import uk.gov.hmrc.services.validation.Utils
 
 class ValidationConfig(validationConfig: Config) extends RuleRefResolver {
 
-  val script: Option[String] = getStringListOpt(validationConfig, "definitions.script").map(_.mkString("\n"))
+//  val script: Option[String] = getStringListOpt(validationConfig, "definitions.script").map(_.mkString("\n"))
 
-  script.map(Utils.compileExpression(_)) // to make sure it's compilable
+//  script.map(Utils.compileExpression(_)) // to make sure it's compilable
 
   val ruleDefs: Map[String, RuleDef] = parseConfigList("rules", validationConfig){RuleDef(_)}.map(r => (r.id, r)).toMap
-  val MANDATORY_RULE: Rule = toRule(RuleRef.MANDATORY_RULE_REF)
+//  val MANDATORY_RULE: Rule = toRule(RuleRef.MANDATORY_RULE_REF)
 
   val cells: List[CellDef] = parseConfigList("fieldInfo", validationConfig){CellDef(_, ruleRefResolver = this)}
   val cellsByColumn: Map[String, CellDef] = cells.map(c => c.column -> c).toMap
-  val cellsByName: Map[String, CellDef] = cells.map(c => c.cellName -> c).toMap
+//  val cellsByName: Map[String, CellDef] = cells.map(c => c.cellName -> c).toMap
 
   val groupRules: Option[List[GroupRule]] = parseConfigListOpt("group-rules", validationConfig){GroupRule(_)}
 
@@ -40,8 +40,8 @@ class ValidationConfig(validationConfig: Config) extends RuleRefResolver {
 
 trait RuleRefResolver {
   def ruleDefs: Map[String, RuleDef]
-  def script: Option[String]
-  def MANDATORY_RULE: Rule
+//  def script: Option[String]
+//  def MANDATORY_RULE: Rule
 
   def toRule(ruleRef: RuleRef): Rule = {
     val ruleDef = ruleDefs(ruleRef.id)

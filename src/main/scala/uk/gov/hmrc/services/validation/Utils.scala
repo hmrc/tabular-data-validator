@@ -41,13 +41,15 @@ object Utils {
     replaceUntilMapIsEmpty(template, parameters.toSeq)
   }
 
-  def compileExpression(expression: String): java.io.Serializable = MVEL.compileExpression(expression)
+//  def compileExpression(expression: String): java.io.Serializable = MVEL.compileExpression(expression)
 
   def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Boolean = {
 
     if (isDate) {
       Try {
-        new SimpleDateFormat("yyyy-mm-dd").parse(cellValue)
+        val date = new SimpleDateFormat("yyyy-mm-dd").parse(cellValue)
+        println("date is " + date)
+        date
       } match {
         case Failure(_) => false
         case Success(_) => true
@@ -64,7 +66,12 @@ object Utils {
 //      }
   }
 
-  def compareCellsToGroupRule(requirementCondition: String, conditionDictator: String, dependentValue: String): Boolean = {
-    if (conditionDictator == requirementCondition) dependentValue.nonEmpty else true
+
+  def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean = {
+    if (cellToCheck == flagValue) dependentCellValue.nonEmpty else true
+  }
+
+  def mandatoryCheck(isMandatory: Boolean, cell: Cell): Boolean = {
+    if (isMandatory) cell.value.isEmpty else false
   }
 }

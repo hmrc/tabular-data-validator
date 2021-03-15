@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.services.validation.config
 
-import com.typesafe.config.{ConfigValue, Config}
+import com.typesafe.config.{Config, ConfigObject, ConfigValue}
+import uk.gov.hmrc.services.validation.models.GroupRuleFlags
+
 import scala.collection.JavaConversions._
+import scala.util.{Try, Success, Failure}
 
 object ParseUtils {
 
@@ -36,6 +39,13 @@ object ParseUtils {
     if(config.hasPath(path)) Some(getStringList(config, path)) else None
   def getStringList(config: Config, path: String): List[String] = config.getStringList(path).toList
   def getStringSet(config: Config, path: String): Set[String] = config.getStringList(path).toSet
+
+  def getTryGroupRuleFlags(config: Config, path: String): Try[GroupRuleFlags] = Try {
+    val flags: ConfigObject = config.getObject(path)
+    val independent: String = flags.get("independent").toString
+    val dependent: String = flags.get("dependent").toString
+    GroupRuleFlags(independent, dependent)
+  }
 
   def getConfigList(path: String, config: Config): List[Config] = config.getConfigList(path).toList
 

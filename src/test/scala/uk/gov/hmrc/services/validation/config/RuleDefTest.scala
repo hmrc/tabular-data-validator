@@ -24,6 +24,7 @@ import org.scalatest.{Matchers, WordSpec}
 /**
  * Created by user02 on 10/10/14.
  */
+/*
 class RuleDefTest extends WordSpec with Matchers {
 
   implicit def string2option(s: String): Option[String] = Some(s)
@@ -163,3 +164,6 @@ class RuleDefTest extends WordSpec with Matchers {
   }
 
 }
+
+
+ */

@@ -40,7 +40,7 @@ trait DataValidator {
    * @param firstRowNum       - all errors contain the row number... specify the staring number here.
    * @param ignoreBlankRows   - shall we ignore completely blank rows?
    */
-  def validateRowsBuffered(rows: List[List[String]], errorBuffer : ListBuffer[ValidationError],, firstRowNum : Int, ignoreBlankRows : Boolean)
+  def validateRowsBuffered(rows: List[List[String]], errorBuffer : ListBuffer[ValidationError], firstRowNum : Int, ignoreBlankRows : Boolean)
 
   /**
    *
@@ -192,11 +192,13 @@ object DataValidator {
 
       val celldef: CellDef = cfg.cellsByColumn(cell.column)
       val rules: List[Rule] = celldef.rules
-      val datamap: Map[String, String] = Map("data" -> cell.value)
-
+//      val datamap: Map[String, String] = Map("data" -> cell.value)
+      println(s"rules here -> $rules")
+      println(s"celldef here -> $celldef")
       for (rule <- rules) {
-        val ruleresult: Option[Any] = Utils.compareCellToRule(rule.regex, rule.isDate, datamap)
-        if (ruleresult != Some(true)) {
+        val ruleResult: Boolean = Utils.compareCellToRule(rule.regex, rule.isDate, cell.value)
+        val failedMandatoryCheck: Boolean = Utils.mandatoryCheck(celldef.mandatory, cell)
+        if (!ruleResult) {
           // validation fails - create error result
           val errorMsg =
             if (rule.isTemplateErrorMsg) {
@@ -214,12 +216,12 @@ object DataValidator {
             }
           val error = ValidationError(cell, rule.id, rule.errorId, errorMsg)
 
-          if (rule.id == RuleRef.MANDATORY_RULE_REF.id) {
+          if (failedMandatoryCheck) {
             // mandatory failed
-            if(celldef.mandatory) {
+//            if(celldef.mandatory) {
               // append the mandatory error to the rest of results
               errors += error
-            }
+            //}
             return  // immediate return on mandatory cell violation
           } else {
             errors += error
@@ -231,30 +233,26 @@ object DataValidator {
     override def validateRowBuffered(row: Row, errors : ListBuffer[ValidationError]) : Unit = {
 
       for {rule <- cfg.groupRules.getOrElse(Nil)
-          if rule.columns.forall(column => row.cellsByColumn.contains(column))} { // 123,yes,yes,Tables; group rule: if C is 'yes', D has to be present
-        /*
-        C is mandatory, D is not
-        groupRule: columns = ["C", "D"]
-        "123,no,yes"
-        C <- row contains C, proceed
-        D <- row does not contain D, do not proceed
-        Map("A" -> ("A", 1, 123), "B" -> ("B", 1, no), "C" -> ("C", 1, yes))
-         */
-        val columns = rule.columns
-        val cells: Set[Cell] = columns.map { column => row.cellsByColumn(column)} // todo WHAT IF COLUMN DOES NOT EXIST IN ROW?
-        val celldefs: Set[CellDef] = columns.map{cfg.cellsByColumn(_)} // todo WHAT IF COLUMNDEF DOES NOT EXIST ?
-        val datamap: Map[String, String] = cells.foldLeft(Map[String, String]()) { case (map, cell) =>
-            map + (s"data${cell.column}" -> cell.value)
-          }
+          if rule.columns.forall(column => row.cellsByColumn.contains(column))} {
 
-        val ruleresult: Option[Any] = Utils.compareCellsToGroupRule(rule.compiledExpr, datamap.values)
-        if (ruleresult != Some(true)) {
+        val columns: Set[String] = rule.columns // group rule K, L -> columns is Set("K", "L")
+        val cells: Set[Cell] = columns.map { column => row.cellsByColumn(column)} // todo WHAT IF COLUMN DOES NOT EXIST IN ROW? Set(Cell("L", 1, "hahaha"), Cell...)
+        val celldefs: Set[CellDef] = columns.map{cfg.cellsByColumn(_)} // todo WHAT IF COLUMNDEF DOES NOT EXIST ?
+        /*
+        val datamap: Map[String, String] = cells.foldLeft(Map[String, String]()) { case (map, cell) =>
+          map + (s"data${cell.column}" -> cell.value)
+        }
+
+         */
+
+        val ruleresult: Boolean = Utils.compareCellsToGroupRule(rule.expectedValue, rule.flags.independent, rule.flags.dependent)
+        if (!ruleresult) {
           // validation fails - create error results
           val msgmap: Map[String, String] = Map("row" -> row.rowNum.toString) ++
             celldefs.foldLeft(Map[String, String]()){ (map, celldef) =>
               map + (s"cellName${celldef.column}" -> celldef.cellName)}
 
-          cells.foreach  {  cell =>
+          cells.foreach { cell =>
             rule.isTemplateErrorMsgFor(cell.column).map{
               case true =>
                 val template = rule.columnErrors(cell.column).left.get
@@ -292,7 +290,7 @@ object DataValidator {
 
       validateRowBuffered(row, errors)
 
-      if errors.length > 0 ) {
+      if (errors.length > 0 ) {
         Some(errors.toList)
       } else {
         None

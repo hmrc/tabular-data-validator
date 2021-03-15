@@ -22,6 +22,7 @@ import uk.gov.hmrc.services.validation.Utils
 /**
  * Created by user02 on 10/13/14.
  */
+/*
 class RuleTest extends WordSpec with Matchers {
 
   val ID = "Some ID"
@@ -114,3 +115,6 @@ class RuleTest extends WordSpec with Matchers {
   }
 
 }
+
+
+ */

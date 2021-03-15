@@ -90,7 +90,7 @@ case class RuleRef(id: String,
                    parameters: Option[Map[String, String]] = None)
 
 object RuleRef {
-  val MANDATORY_RULE_REF: RuleRef = RuleRef(id = "MANDATORY")
+//  val MANDATORY_RULE_REF: RuleRef = RuleRef(id = "MANDATORY")
 
   val RULE_PARAMETERES = "parameters"
 
@@ -99,7 +99,7 @@ object RuleRef {
     val id = refConfig.getString(RuleDef.RULE_ID)
     val errorId = getStringOpt(RuleDef.ERROR_ID)
     val errorMsgEither = eitherConfigOpt(Left(RuleDef.ERROR_MSG_TEMPLATE), Right(RuleDef.ERROR_MSG))
-    val errorMsg = getStringOpt(RuleDef.ERROR_MSG)
+//    val errorMsg = getStringOpt(RuleDef.ERROR_MSG)
 
     val parameters: Option[Map[String, String]] = parseConfigOpt(RULE_PARAMETERES)(asMap(_))
 
@@ -151,6 +151,7 @@ object Rule {
       } else {
         value.right.toOption
       }
+        case _ => None
       }
     }
 
