@@ -17,7 +17,7 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.Config
-import uk.gov.hmrc.services.validation.utils.ParseUtils.{parseConfig, parseConfigListOpt}
+import uk.gov.hmrc.services.validation.utils.ParseUtils.parseConfig
 
 case class CellDefinition(column: String, cellName: String, mandatory: Boolean, rule: Rule)
 

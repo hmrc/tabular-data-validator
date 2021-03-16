@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.services.validation.models
 
-import uk.gov.hmrc.services.validation.Utils
-
 /**
  * This is the actual rule to apply.
  * Not intended to be configured in a file, created internally instead from a given RuleDef.
@@ -29,13 +27,10 @@ import uk.gov.hmrc.services.validation.Utils
  */
 case class Rule(id: String,
                 errorId: String,
-                errorMsg: Either[String, String],
+                errorMsg: String,
                 parameters: Option[Map[String, String]],
                 isDate: Boolean,
-                regex: Option[String]) {
-
-  def isTemplateErrorMsg: Boolean = errorMsg.isLeft
-}
+                regex: Option[String])
 
 object Rule {
 
@@ -44,7 +39,7 @@ object Rule {
     require(ruleRefOpt.forall(_.id == ruleDef.id))
 
     val errorId: String = ruleRefOpt.flatMap(_.errorId).getOrElse(ruleDef.errorId)
-    val errorMsg: Either[String, String] = ruleRefOpt.flatMap(_.errorMsg).getOrElse(ruleDef.errorMsg)
+    val errorMsg: String = ruleRefOpt.flatMap(_.errorMsg).getOrElse(ruleDef.errorMsg)
     val parametersOpt: Option[Map[String, String]] = ruleRefOpt.flatMap(_.parameters)
     val isDateFlag: Boolean = ruleDef.isDate.contains(true)
 

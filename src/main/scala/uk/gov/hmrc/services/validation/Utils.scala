@@ -25,19 +25,23 @@ import scala.util.Try
 object Utils {
   def parseTemplate(template: String, parameters: Map[String, String]): String = {
     parameters.foldLeft(template) {
-      case (accumulator, (key, value)) => accumulator.replaceAll(s"@{$key}", value)
+      case (accumulator, (key, value)) =>
+        Try(accumulator.replaceAll(s"@{$key}", value)).getOrElse(accumulator)
     }
   }
 
-  def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Boolean = {
-    if (isDate) {
-      Try(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(cellValue)).isSuccess
+  def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Option[Boolean] = {
+    if (cellValue.isEmpty) {
+      None
+    } else if (isDate) {
+      Some(Try(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(cellValue)).isSuccess)
     } else {
-      cellValue.matches(regex.get)
+      Some(cellValue.matches(regex.get))
     }
   }
 
   def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean = {
+    println("flagValue " + flagValue + " cellToCheck " + cellToCheck + " dependentCellValue " + dependentCellValue)
     if (cellToCheck == flagValue) dependentCellValue.nonEmpty else true
   }
 

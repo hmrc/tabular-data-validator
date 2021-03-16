@@ -17,7 +17,6 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.Config
-import uk.gov.hmrc.services.validation.Utils
 import uk.gov.hmrc.services.validation.utils.ParseUtils._
 
 import scala.util.Try
@@ -31,7 +30,7 @@ import scala.util.Try
  * @param errorMsg
  * @param regex
  */
-case class RuleDef(id: String, errorId: String, errorMsg: Either[String, String],
+case class RuleDef(id: String, errorId: String, errorMsg: String,
                    regex: Option[String], isDate: Option[Boolean]) {
 
   require(regex.isDefined ^ isDate.contains(true))
@@ -43,7 +42,6 @@ object RuleDef {
   val ERROR_ID = "errorId"
   val DATE_FLAG = "isDate"
   val ERROR_MSG = "errorMsg"
-  val ERROR_MSG_TEMPLATE = "errorMsgTemplate"
   val REGEX = "regex"
 
   def apply(ruleConfig: Config): RuleDef = {
@@ -51,13 +49,13 @@ object RuleDef {
     val errorId = ruleConfig.getString(ERROR_ID)
     val isDate = Try(ruleConfig.getBoolean(DATE_FLAG)).toOption
 
-    val errorMsgEither = eitherConfig(Left(ERROR_MSG_TEMPLATE), Right(ERROR_MSG), ruleConfig)
+    val errorMsg = ruleConfig.getString(ERROR_MSG)
     val regex = getStringOpt(ruleConfig, REGEX)
 
     RuleDef(id = id,
       errorId = errorId,
       isDate = isDate,
-      errorMsg = errorMsgEither,
+      errorMsg = errorMsg,
       regex = regex,
     )
   }

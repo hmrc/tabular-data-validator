@@ -17,8 +17,7 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.Config
-import uk.gov.hmrc.services.validation.utils.ParseUtils.{eitherConfig, getStringSet, getTryGroupRuleFlags}
-import uk.gov.hmrc.services.validation.models.GroupRuleFlags
+import uk.gov.hmrc.services.validation.utils.ParseUtils.{getStringSet, getTryGroupRuleFlags}
 
 import scala.util.{Failure, Success}
 
@@ -26,14 +25,10 @@ import scala.util.{Failure, Success}
 case class GroupRule(id: String,
                    errorId: String,
                    columns: Set[String],
-                   columnErrors: Map[String, Either[String, String]], // key - column, value - Left for template, Right for messsage
+                   columnErrors: Map[String, String], // key - column, value - Left for template, Right for message
                    flags: GroupRuleFlags,
                    expectedValue: String
-                    ) {
-
-  def isTemplateErrorMsgFor(column: String): Option[Boolean] = columnErrors.get(column).map{_.isLeft}
-  def isPlainErrorMsgFor(column: String): Option[Boolean] = isTemplateErrorMsgFor(column).map{!_}
-}
+                    )
 
 object GroupRule {
 
@@ -42,19 +37,18 @@ object GroupRule {
   val FLAGS: String = "flags"
 
   def apply(rowConfig: Config): GroupRule = {
-    implicit val implicitConfig: Config = rowConfig
     val id = rowConfig.getString(RuleDef.RULE_ID)
     val errorId = rowConfig.getString(RuleDef.ERROR_ID)
 
     val columns: Set[String] = getStringSet(rowConfig, COLUMNS)
     if (columns.isEmpty) throw new IllegalArgumentException(s"Columns for row rule $id are not given.")
 
-    val columnErrors: Map[String, Either[String, String]] = columns.map { column =>
+    val columnErrors: Map[String, String] = columns.map { column =>
       val path = s"columnErrors.$column"
       if (rowConfig.hasPath(path)) {
         val columnErrorConfig = rowConfig.getConfig(path)
-        val errorMsgEither = eitherConfig(Left(RuleDef.ERROR_MSG_TEMPLATE), Right(RuleDef.ERROR_MSG), columnErrorConfig)
-        Some(column -> errorMsgEither)
+        val errorMsg = columnErrorConfig.getString(RuleDef.ERROR_MSG)
+        Some(column -> errorMsg)
       } else {
         None
       }

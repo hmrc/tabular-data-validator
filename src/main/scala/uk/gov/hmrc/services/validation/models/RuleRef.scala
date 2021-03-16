@@ -32,7 +32,7 @@ import uk.gov.hmrc.services.validation.utils.ParseUtils._
  */
 case class RuleRef(id: String,
                    errorId: Option[String] = None,
-                   errorMsg: Option[Either[String, String]] = None,
+                   errorMsg: Option[String] = None,
                    parameters: Option[Map[String, String]] = None)
 
 object RuleRef {
@@ -42,12 +42,12 @@ object RuleRef {
   def apply(refConfig: Config): RuleRef = {
     val id = refConfig.getString(RuleDef.RULE_ID)
     val errorId = getStringOpt(refConfig, RuleDef.ERROR_ID)
-    val errorMsgEither = eitherConfigOpt(refConfig, Left(RuleDef.ERROR_MSG_TEMPLATE), Right(RuleDef.ERROR_MSG))
+    val errorMsg = getStringOpt(refConfig, RuleDef.ERROR_MSG)
     val parameters: Option[Map[String, String]] = parseConfigOpt(RULE_PARAMETERS, refConfig)(asMap)
 
     RuleRef(id = id,
       errorId = errorId,
-      errorMsg = errorMsgEither,
+      errorMsg = errorMsg,
       parameters = parameters)
   }
 }
