@@ -71,7 +71,7 @@ class DataValidatorTest extends WordSpec with Matchers {
       |       mandatory: false
       |       error: {
       |          id = "error4"
-      |          errorMsg = ${validation-types.int6.errorMsg}
+      |          errorMsg = "Not like this my dude"
       |          regex="[0-9]{1,6}"
       |          errorId = "002"
       |        }
@@ -80,7 +80,7 @@ class DataValidatorTest extends WordSpec with Matchers {
       |
       |   group-rules:[
       |    {
-      |      id="mandatoryBCD"
+      |      id="mandatoryCD"
       |      errorId="102"
       |      columns:["C", "D"]
       |      flags: {
@@ -113,114 +113,64 @@ class DataValidatorTest extends WordSpec with Matchers {
     maybeErrors should be(None)
   }
 
-  "Cell validation" in {
-    "a mandatory cell" should {
-      "fail for no input" in {
-        val validator = new DataValidator(CONFIG)
-        val cell = Cell("A", 123, "")
-        val resOpt: Option[ValidationError] = validator.validateCell(cell)
-        resOpt should not be None
-        //      resOpt.value shouldBe List()
+  "Cell validation" when {
+    val validator = new DataValidator(CONFIG)
+
+    "evaluating a mandatory cell" should {
+      "return a validation error if the cell is empty" in {
+        EMPTIES.foreach { emptyValue =>
+          val cell = Cell("A", 123, emptyValue)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt should not be None
+          resOpt.get shouldBe ValidationError(cell, "error.1", "001", "This is an error message")
+        }
       }
 
-      "work with incorrect date filled" in {
-        val validator = new DataValidator(CONFIG)
+      "return a validation error if expecting a date and not receiving one" in {
         val cell = Cell("A", 123, "notADateFam")
         val resOpt: Option[ValidationError] = validator.validateCell(cell)
         resOpt should not be None
-        //      resOpt.value shouldBe List()
+        resOpt.get shouldBe ValidationError(cell, "error.1", "001", "This is an error message")
       }
 
-      "work with correct date filled" in {
-        val validator = new DataValidator(CONFIG)
+      "return None if the cell is valid" in {
         val cell = Cell("A", 123, "1990-11-10")
         val resOpt: Option[ValidationError] = validator.validateCell(cell)
         resOpt shouldBe None
-        //      resOpt.value shouldBe List()
       }
 
     }
-  }
 
-
-  "Row validation" in {
-    "a group rule" should {
-      "fail if given failing row" in {
-
-      }
-    }
-  }
-
-
-    "Mandatory validation" should {
-
-        "give mandatory error on mandatory field empty" in {
-          val validator = new DataValidator(CONFIG)
-          EMPTIES.foreach { emptyValue =>
-            val cell = Cell("A", 123, emptyValue)
-            val resOpt: Option[ValidationError] = validator.validateCell(cell)
-              resOpt should not be None
-              resOpt.value shouldBe List(
-                ValidationError(cell, "error.1", "001", "This is an error message")
-              )
-          }
-        }
-
-      "give errors on mandatory field invalid values" in {
-        val validator = new DataValidator(CONFIG)
-        val invalids: List[String] = List("bla", " Hello, World!", "hello world", "blablabla")
-        invalids.foreach { invalidValue =>
-          val cell = Cell("A", 123, invalidValue)
-          val resOpt: Option[ValidationError] = validator.validateCell(cell)
-          resOpt should not be None
-          resOpt.value shouldBe List(
-            ValidationError(cell, "error.1", "001", "This is an error message")
-          )
-        }
-      }
-
-      "pass mandatory field with proper value" in {
-        val validator = new DataValidator(CONFIG)
-        val cell = Cell("A", 123, "1066-10-14")
-        val resOpt: Option[ValidationError] = validator.validateCell(cell)
-        resOpt should be (None)
-      }
-    }
-
-    "Optional validation" should {
-      "give errors on non-empty invalid data in optional field" in {
-        val validator = new DataValidator(CONFIG)
-        val invalids: List[String] = List("damn things1", "So damn!", "This was damn situation!")
-        invalids.foreach { invalidValue =>
-          val cell = Cell("B", 123, invalidValue)
-          val resOpt: Option[ValidationError] = validator.validateCell(cell)
-          resOpt should not be None
-          resOpt.value shouldBe List(
-            ValidationError(cell, "error.2", "002", "This is a second error message")
-          )
-        }
-      }
-
-      "pass valid data in optional field" in {
-        val validator = new DataValidator(CONFIG)
-        val valids = List("this", "sampleText", "blablabla", "somethingsomething")
-        valids.foreach { validValue =>
-          val cell = Cell("B", 123, validValue)
-          val resOpt: Option[ValidationError] = validator.validateCell(cell)
-          resOpt shouldBe None
-        }
-      }
-
-      "pass empty data in optional field" in {
-        val validator = new DataValidator(CONFIG)
+    "evaluating an optional cell" should {
+      "return a None if the cell is empty" in {
         EMPTIES.foreach { emptyValue =>
           val cell = Cell("B", 123, emptyValue)
           val resOpt: Option[ValidationError] = validator.validateCell(cell)
           resOpt shouldBe None
         }
       }
-    }
 
+      "return a validation error if cell is filled incorrectly" in {
+        val invalidEntries =  List("n0t valid", " extra-inValid", "probably still 1nvalid")
+        invalidEntries.foreach { entry =>
+          val cell = Cell("B", 123, entry)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt.get shouldBe ValidationError(cell, "error.2", "002", "This is a second error message")
+        }
+      }
+
+      "return a None if the cell is filled in correctly" in {
+        val validEntries =  List("valid", " extraValid", "probably still valid")
+        validEntries.foreach { entry =>
+          val cell = Cell("B", 123, entry)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt shouldBe None
+        }
+      }
+    }
+  }
+
+/*
   "Row validation" should {
     val rowNum = 123
     val VALID_B = "Polite comment."
@@ -281,5 +231,7 @@ class DataValidatorTest extends WordSpec with Matchers {
       expectErrors(Row(rowNum, Seq(B_WRONG, C_VALID, D_WRONG)), List(ERROR_B, ERROR_D))
     }
   }
+
+ */
 
 }

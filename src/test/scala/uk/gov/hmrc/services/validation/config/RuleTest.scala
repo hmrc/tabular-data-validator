@@ -18,103 +18,27 @@ package uk.gov.hmrc.services.validation.config
 
 import org.scalatest.{Matchers, WordSpec}
 import uk.gov.hmrc.services.validation.Utils
+import uk.gov.hmrc.services.validation.models.{RuleDef, Rule, RuleRef}
 
-/**
- * Created by user02 on 10/13/14.
- */
-/*
 class RuleTest extends WordSpec with Matchers {
 
   val ID = "Some ID"
   val ERROR_ID: String = "Some error id"
-
-  val MSG_TEMPL: String = "Some error msg template"
-  val ERROR_MSG_TEMPLATE: Either[String, String] = Left(MSG_TEMPL)
   val MSG: String = "Some error msg"
-  val ERROR_MSG: Either[String, String] = Right(MSG)
-
-  val EXPR_TEMPL: String = """println("@{data}")"""
-  val EXPR_TEMPLATE: Either[String, String] = Left(EXPR_TEMPL)
-  val EXPRESSION: String = """"println(data)""""
-  val EXPR: Either[String, String] = Right(EXPRESSION)
-
-  val SCRIPT: String =
-    """
-      |def println(s) {
-      | System.out.println(s)
-      |}
-    """.stripMargin
-  val SOME_SCRIPT: Option[String] = Some(SCRIPT)
-  val NONE_SCRIPT: Option[String] = None
-
-  val PARAMS: Map[String, String] = Map("data" -> "Hello world.")
-  val PARAMS_OPT: Option[Map[String, String]] = Some(PARAMS)
-
-  val PARSED_EXPR_TEMPLATE: String = Utils.parseTemplate(EXPR_TEMPL, PARAMS)
-  val COMPILED_EXPR_TEMPLATE = Utils.compileExpression(s"$SCRIPT\n$PARSED_EXPR_TEMPLATE")
-  val COMPILED_EXPR = Utils.compileExpression(s"$SCRIPT\n$EXPRESSION")
-
-//  println(COMPILED_EXPR.toString)
-
-  val RULEDEF_TE = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG_TEMPLATE, expr = EXPR)
-  val RULEDEF_TT = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG_TEMPLATE, expr = EXPR_TEMPLATE)
-  val RULEDEF_MT = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG, expr = EXPR_TEMPLATE)
-  val RULEDEF_ME = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG, expr = EXPR)
-
+  val ourRegex: String = "[0-9]*"
 
   "Rule" should {
-    "be created from given RuleDef" in {
-      val ruledef = RULEDEF_TE
+    "be created from a given RuleDef" in {
+      val ruleDef: RuleDef = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = MSG, regex = Some(ourRegex), isDate = Some(false))
 
-      val rule = Rule(ruledef, ruleRefOpt = None, baseScript = SOME_SCRIPT)
-      rule.id shouldBe(ruledef.id)
-      rule.errorId shouldBe(ruledef.errorId)
-      rule.errorMsg shouldBe(ruledef.errorMsg)
+      val rule = Rule(ruleDef, ruleRefOpt = None)
+      rule.id shouldBe(ruleDef.id)
+      rule.errorId shouldBe(ruleDef.errorId)
+      rule.errorMsg shouldBe(ruleDef.errorMsg)
       rule.parameters shouldBe(None)
-      rule.regex shouldBe(ruledef.expr.right.get)
-      //todo: how to check equality of compiled expressions ???
-      rule.compiledExpr.toString shouldBe(COMPILED_EXPR.toString)
-    }
-
-    "be created from given RuleDef and RuleRef" in {
-      val ERROR_ID_ref: String = "Ref error id"
-
-      val MSG_TEMPL_ref: String = "Ref error msg template"
-      val ERROR_MSG_TEMPLATE_ref: Either[String, String] = Left(MSG_TEMPL_ref)
-      val MSG_ref: String = "Ref error msg"
-      val ERROR_MSG_ref: Either[String, String] = Right(MSG_ref)
-
-      val ruledef = RULEDEF_TT
-      val ruleref = RuleRef(id = ruledef.id, errorId = Some(ERROR_ID_ref), errorMsg = Some(ERROR_MSG_ref), parameters = PARAMS_OPT)
-
-      val rule = Rule(ruledef, ruleRefOpt = Some(ruleref), baseScript = SOME_SCRIPT)
-      rule.id shouldBe(ruleref.id)
-      rule.errorId shouldBe(ruleref.errorId.get)
-      rule.errorMsg shouldBe(ruleref.errorMsg.get)
-      rule.parameters shouldBe(ruleref.parameters)
-      rule.regex shouldBe(PARSED_EXPR_TEMPLATE)
-      //todo: how to check equality of compiled expressions ???
-      rule.compiledExpr.toString shouldBe(COMPILED_EXPR_TEMPLATE.toString)
-    }
-
-    "have proper booleans on templates/plains" in {
-
-      // map values - templates booleans
-      val m: Map[Rule, Boolean] = Map(
-        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG, parameters = PARAMS_OPT, regex = EXPRESSION, compiledExpr = COMPILED_EXPR) -> false,
-        Rule(id = ID, errorId = ERROR_ID, errorMsg = ERROR_MSG_TEMPLATE, parameters = PARAMS_OPT, regex = EXPRESSION, compiledExpr = COMPILED_EXPR) -> true
-      )
-
-      m.foreach{ case (rule, msgtempl) =>
-        rule.isTemplateErrorMsg shouldBe(msgtempl)
-        rule.isPlainErrorMsg shouldBe(!msgtempl)
-      }
-
+      rule.regex shouldBe ruleDef.regex
     }
 
   }
 
 }
-
-
- */

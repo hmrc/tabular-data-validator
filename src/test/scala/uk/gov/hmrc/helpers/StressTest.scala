@@ -18,7 +18,8 @@ package uk.gov.hmrc.helpers
 import java.io.File
 
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.services.validation.{Cell, DataValidator, ValidationError}
+import uk.gov.hmrc.services.validation.DataValidator
+import uk.gov.hmrc.services.validation.models._
 
 /*
 class StressTest extends WordSpec with Matchers {

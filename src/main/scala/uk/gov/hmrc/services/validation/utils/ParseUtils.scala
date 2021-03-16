@@ -24,11 +24,15 @@ import scala.util.Try
 
 object ParseUtils {
 
+
   def entrySet(config: Config): Set[java.util.Map.Entry[String, ConfigValue]] = config.entrySet.asScala.toSet
 
   def asMap(config: Config): Map[String, String] = entrySet(config).map { entry =>
     entry.getKey -> config.getString(entry.getKey)
   }.toMap
+
+  //TODO these top two are only used by RuleRef which is to be deleted (also they have the "Quoted("A")" thing going on so would need fixing anyway
+  // e.g. config like {id = "config string"} goes to Set(id=Quoted("config string"))
 
   def getStringOpt(config: Config, path: String): Option[String] =
     if (config.hasPath(path)) Some(config.getString(path)) else None
