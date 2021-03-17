@@ -44,7 +44,7 @@ class CellDefinitionTest extends WordSpec with Matchers {
         "A",
         "1. Date of event (yyyy-mm-dd)",
         mandatory = true,
-        Rule(RuleDef("error.1", "001", "This is an error message", None, Some(true)), None)
+        Rule("error.1", "001", "This is an error message", isDate = true, None)
       )
     }
   }

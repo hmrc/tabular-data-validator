@@ -20,6 +20,7 @@ import com.typesafe.config.Config
 import uk.gov.hmrc.services.validation.config.ValidationConfig
 import uk.gov.hmrc.services.validation.models.{CellDefinition, Rule}
 import uk.gov.hmrc.services.validation.models._
+import uk.gov.hmrc.services.validation.utils.Utils
 
 import scala.util.{Failure, Success, Try}
 
@@ -70,7 +71,9 @@ class DataValidator(validationConfig: Config) {
           cell =>
             ValidationError(cell, rule.id, rule.errorId, rule.columnErrors(cell.column))
         }
-      } else Seq.empty
+      } else {
+        Seq.empty
+      }
 
     }
 

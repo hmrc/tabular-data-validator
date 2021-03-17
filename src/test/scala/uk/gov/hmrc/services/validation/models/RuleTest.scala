@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.services.validation.config
+package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.services.validation.models.RuleDef
 
-class RuleDefTest extends WordSpec with Matchers {
+class RuleTest extends WordSpec with Matchers {
 
-  "RuleDef" should {
+  "Rule" should {
     "be correctly instantiated from valid config with isDate set to true" in {
       val errorConfig: String =
         """
@@ -32,13 +31,13 @@ class RuleDefTest extends WordSpec with Matchers {
           |  isDate = true
     """.stripMargin
       val config: Config = ConfigFactory.parseString(errorConfig)
-      val ruleDef = RuleDef(config)
+      val rule = Rule(config)
 
-      ruleDef.id shouldBe "error.1"
-      ruleDef.errorMsg shouldBe "This is an error message"
-      ruleDef.errorId shouldBe "001"
-      ruleDef.isDate shouldBe Some(true)
-      ruleDef.regex shouldBe None
+      rule.id shouldBe "error.1"
+      rule.errorMsg shouldBe "This is an error message"
+      rule.errorId shouldBe "001"
+      rule.isDate shouldBe true
+      rule.regex shouldBe None
     }
 
     "be correctly instantiated from valid config with isDate set to false" in {
@@ -52,13 +51,13 @@ class RuleDefTest extends WordSpec with Matchers {
           |
     """.stripMargin
       val config: Config = ConfigFactory.parseString(errorConfig)
-      val ruleDef = RuleDef(config)
+      val rule = Rule(config)
 
-      ruleDef.id shouldBe "error.2"
-      ruleDef.errorMsg shouldBe "This is another error message"
-      ruleDef.errorId shouldBe "002"
-      ruleDef.isDate shouldBe Some(false)
-      ruleDef.regex shouldBe Some("[0-9a-zA-Z]*")
+      rule.id shouldBe "error.2"
+      rule.errorMsg shouldBe "This is another error message"
+      rule.errorId shouldBe "002"
+      rule.isDate shouldBe false
+      rule.regex shouldBe Some("[0-9a-zA-Z]*")
     }
 
     "be correctly instantiated from valid config with isDate field missing" in {
@@ -71,13 +70,13 @@ class RuleDefTest extends WordSpec with Matchers {
           |
     """.stripMargin
       val config: Config = ConfigFactory.parseString(errorConfig)
-      val ruleDef = RuleDef(config)
+      val rule = Rule(config)
 
-      ruleDef.id shouldBe "error.3"
-      ruleDef.errorMsg shouldBe "This is a third error message"
-      ruleDef.errorId shouldBe "003"
-      ruleDef.isDate shouldBe None
-      ruleDef.regex shouldBe Some("[0-9a-zA-Z]*")
+      rule.id shouldBe "error.3"
+      rule.errorMsg shouldBe "This is a third error message"
+      rule.errorId shouldBe "003"
+      rule.isDate shouldBe false
+      rule.regex shouldBe Some("[0-9a-zA-Z]*")
     }
 
     "fail to be instantiated from invalid config with isDate field set to true and regex present" in {
@@ -91,7 +90,7 @@ class RuleDefTest extends WordSpec with Matchers {
           |
     """.stripMargin
       val config: Config = ConfigFactory.parseString(errorConfig)
-      an[IllegalArgumentException] shouldBe thrownBy(RuleDef(config))
+      an[IllegalArgumentException] shouldBe thrownBy(Rule(config))
     }
 
     "fail to be instantiated from invalid config when both the isDate and regex fields are missing" in {
@@ -103,7 +102,7 @@ class RuleDefTest extends WordSpec with Matchers {
           |
     """.stripMargin
       val config: Config = ConfigFactory.parseString(errorConfig)
-      an[IllegalArgumentException] shouldBe thrownBy(RuleDef(config))
+      an[IllegalArgumentException] shouldBe thrownBy(Rule(config))
     }
   }
 

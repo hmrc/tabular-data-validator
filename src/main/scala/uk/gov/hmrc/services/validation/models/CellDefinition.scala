@@ -32,7 +32,7 @@ object CellDefinition {
     val cellName = cellConfig.getString(CELL_NAME)
     val manda = cellConfig.getBoolean(MANDATORY)
 
-    val cellRule: Rule = parseConfig(CELL_RULE, cellConfig) {errorConfig => Rule(RuleDef(errorConfig))}
+    val cellRule: Rule = parseConfig(CELL_RULE, cellConfig) {errorConfig => Rule(errorConfig)}
 
     CellDefinition(column = column,
       cellName = cellName,

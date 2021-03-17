@@ -16,36 +16,39 @@
 
 package uk.gov.hmrc.services.validation.models
 
-/**
- * This is the actual rule to apply.
- * Not intended to be configured in a file, created internally instead from a given RuleDef.
- *
- * @param id
- * @param errorId
- * @param errorMsg
- * @param regex
- */
+import com.typesafe.config.Config
+import uk.gov.hmrc.services.validation.utils.ParseUtils._
+
+import scala.util.Try
+
 case class Rule(id: String,
                 errorId: String,
                 errorMsg: String,
                 isDate: Boolean,
-                regex: Option[String])
+                regex: Option[String]) {
+  require(regex.isDefined ^ isDate.equals(true))
+}
 
 object Rule {
+  val RULE_ID = "id"
+  val ERROR_ID = "errorId"
+  val DATE_FLAG = "isDate"
+  val ERROR_MSG = "errorMsg"
+  val REGEX = "regex"
 
-  def apply(ruleDef: RuleDef): Rule = {
+  def apply(ruleConfig: Config): Rule = {
+    val id: String = ruleConfig.getString(RULE_ID)
+    val errorId: String = ruleConfig.getString(ERROR_ID)
+    val isDate: Boolean = Try(ruleConfig.getBoolean(DATE_FLAG)).toOption.contains(true)
 
-    val errorId: String = ruleDef.errorId
-    val errorMsg: String = ruleDef.errorMsg
-    val isDateFlag: Boolean = ruleDef.isDate.contains(true)
+    val errorMsg: String = ruleConfig.getString(ERROR_MSG)
+    val regex: Option[String] = getStringOpt(ruleConfig, REGEX)
 
-    Rule(id = ruleDef.id,
+    Rule(id = id,
       errorId = errorId,
+      isDate = isDate,
       errorMsg = errorMsg,
-      isDate = isDateFlag,
-      regex = ruleDef.regex
+      regex = regex
     )
-
   }
-
 }

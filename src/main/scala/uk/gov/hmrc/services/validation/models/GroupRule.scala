@@ -37,8 +37,8 @@ object GroupRule {
   val FLAGS: String = "flags"
 
   def apply(rowConfig: Config): GroupRule = {
-    val id = rowConfig.getString(RuleDef.RULE_ID)
-    val errorId = rowConfig.getString(RuleDef.ERROR_ID)
+    val id = rowConfig.getString(Rule.RULE_ID)
+    val errorId = rowConfig.getString(Rule.ERROR_ID)
 
     val columns: Set[String] = getStringSet(rowConfig, COLUMNS)
     if (columns.isEmpty) throw new IllegalArgumentException(s"Columns for row rule $id are not given.")
@@ -47,7 +47,7 @@ object GroupRule {
       val path = s"columnErrors.$column"
       if (rowConfig.hasPath(path)) {
         val columnErrorConfig = rowConfig.getConfig(path)
-        val errorMsg = columnErrorConfig.getString(RuleDef.ERROR_MSG)
+        val errorMsg = columnErrorConfig.getString(Rule.ERROR_MSG)
         Some(column -> errorMsg)
       } else {
         None

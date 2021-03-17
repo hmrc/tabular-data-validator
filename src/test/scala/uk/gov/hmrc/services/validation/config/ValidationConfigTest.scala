@@ -18,7 +18,7 @@ package uk.gov.hmrc.services.validation.config
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.services.validation.models.{CellDefinition, GroupRule, GroupRuleFlags, Rule, RuleDef}
+import uk.gov.hmrc.services.validation.models.{CellDefinition, GroupRule, GroupRuleFlags, Rule}
 
 class ValidationConfigTest extends WordSpec with Matchers {
 
@@ -99,16 +99,16 @@ class ValidationConfigTest extends WordSpec with Matchers {
 
   val cellA = CellDefinition("A", "1. Date of event (yyyy-mm-dd)",
     mandatory = true,
-    Rule(RuleDef("error.1", "001", "This is an error message", None, Some(true)), None))
+    Rule("error.1", "001", "This is an error message", isDate = true, None))
   val cellB = CellDefinition("B", "Optional comment",
     mandatory = false,
-    Rule(RuleDef("error.2", "002", "This is a second error message", Some("[a-zA-Z ]*"), None), None))
+    Rule("error.2", "002", "This is a second error message", isDate = false, Some("[a-zA-Z ]*")))
   val cellC = CellDefinition("C", "Optional something, 1.1111",
     mandatory = true,
-    Rule(RuleDef("error.3", "003", "This is an error message for column C", Some("[0-9]{1,13}\\.[0-9]{4}"), None), None))
+    Rule("error.3", "003", "This is an error message for column C", isDate = false, Some("[0-9]{1,13}\\.[0-9]{4}")))
   val cellD = CellDefinition("D", "Optional D, mandatory if C has yes, int",
     mandatory = false,
-    Rule(RuleDef("error4", "002", "This is an error message for column D", Some("[0-9]{1,6}"), None), None))
+    Rule("error4", "002", "This is an error message for column D", isDate = false, Some("[0-9]{1,6}")))
 
   "ValidationConfig" should {
     "return a valid list of cellDefinitions" in new ValidationConfig(configParsed) {

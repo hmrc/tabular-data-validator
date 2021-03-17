@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.services.validation
+package uk.gov.hmrc.services.validation.utils
 
 import org.scalatest.{Matchers, WordSpec}
 

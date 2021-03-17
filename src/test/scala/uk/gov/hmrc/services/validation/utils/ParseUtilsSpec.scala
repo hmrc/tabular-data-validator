@@ -18,7 +18,7 @@ package uk.gov.hmrc.services.validation.utils
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.services.validation.models.{CellDefinition, Rule, RuleDef}
+import uk.gov.hmrc.services.validation.models.{CellDefinition, Rule}
 
 import scala.util.{Failure, Success}
 
@@ -174,7 +174,7 @@ class ParseUtilsSpec extends WordSpec with Matchers {
         """.stripMargin
         val config: Config = ConfigFactory.parseString(configString)
         parser.parseConfigList("fieldInfo", config)(CellDefinition(_)) shouldBe
-          List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", None, false, Some("[0-9]{1,11}\\.[0-9]{2}"))))
+          List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}"))))
       }
     }
 
@@ -200,7 +200,7 @@ class ParseUtilsSpec extends WordSpec with Matchers {
         """.stripMargin
         val config: Config = ConfigFactory.parseString(configString)
         parser.parseConfigListOpt("fieldInfo", config)(CellDefinition(_)) shouldBe
-          Some(List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", None, false, Some("[0-9]{1,11}\\.[0-9]{2}")))))
+          Some(List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}")))))
         parser.parseConfigListOpt("nope", config)(CellDefinition(_)) shouldBe None
       }
     }
@@ -220,8 +220,8 @@ class ParseUtilsSpec extends WordSpec with Matchers {
             |  }
         """.stripMargin
         val config: Config = ConfigFactory.parseString(configString)
-        parser.parseConfig("object", config) { errorConfig => Rule(RuleDef(errorConfig), None) } shouldBe
-          Rule("error.4", "004", "message", None, false, Some("[0-9]{1,11}\\.[0-9]{2}"))
+        parser.parseConfig("object", config) { errorConfig => Rule(errorConfig) } shouldBe
+          Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}"))
       }
     }
 
@@ -240,9 +240,9 @@ class ParseUtilsSpec extends WordSpec with Matchers {
             |  }
         """.stripMargin
         val config: Config = ConfigFactory.parseString(configString)
-        parser.parseConfigOpt("object", config) { errorConfig => Rule(RuleDef(errorConfig), None) } shouldBe
-          Some(Rule("error.4", "004", "message", None, false, Some("[0-9]{1,11}\\.[0-9]{2}")))
-        parser.parseConfigOpt("invalid", config) { errorConfig => Rule(RuleDef(errorConfig), None) } shouldBe None
+        parser.parseConfigOpt("object", config) { errorConfig => Rule(errorConfig) } shouldBe
+          Some(Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}")))
+        parser.parseConfigOpt("invalid", config) { errorConfig => Rule(errorConfig) } shouldBe None
       }
     }
   }
