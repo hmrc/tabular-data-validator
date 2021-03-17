@@ -17,8 +17,7 @@
 package uk.gov.hmrc.services.validation.config
 
 import org.scalatest.{Matchers, WordSpec}
-import uk.gov.hmrc.services.validation.Utils
-import uk.gov.hmrc.services.validation.models.{RuleDef, Rule, RuleRef}
+import uk.gov.hmrc.services.validation.models.{Rule, RuleDef}
 
 class RuleTest extends WordSpec with Matchers {
 
@@ -31,11 +30,10 @@ class RuleTest extends WordSpec with Matchers {
     "be created from a given RuleDef" in {
       val ruleDef: RuleDef = RuleDef(id = ID, errorId = ERROR_ID, errorMsg = MSG, regex = Some(ourRegex), isDate = Some(false))
 
-      val rule = Rule(ruleDef, ruleRefOpt = None)
-      rule.id shouldBe(ruleDef.id)
-      rule.errorId shouldBe(ruleDef.errorId)
-      rule.errorMsg shouldBe(ruleDef.errorMsg)
-      rule.parameters shouldBe(None)
+      val rule = Rule(ruleDef)
+      rule.id shouldBe ruleDef.id
+      rule.errorId shouldBe ruleDef.errorId
+      rule.errorMsg shouldBe ruleDef.errorMsg
       rule.regex shouldBe ruleDef.regex
     }
 

@@ -28,25 +28,20 @@ package uk.gov.hmrc.services.validation.models
 case class Rule(id: String,
                 errorId: String,
                 errorMsg: String,
-                parameters: Option[Map[String, String]],
                 isDate: Boolean,
                 regex: Option[String])
 
 object Rule {
 
-  def apply(ruleDef: RuleDef, ruleRefOpt: Option[RuleRef]): Rule = {
-    //todo add more requirements
-    require(ruleRefOpt.forall(_.id == ruleDef.id))
+  def apply(ruleDef: RuleDef): Rule = {
 
-    val errorId: String = ruleRefOpt.flatMap(_.errorId).getOrElse(ruleDef.errorId)
-    val errorMsg: String = ruleRefOpt.flatMap(_.errorMsg).getOrElse(ruleDef.errorMsg)
-    val parametersOpt: Option[Map[String, String]] = ruleRefOpt.flatMap(_.parameters)
+    val errorId: String = ruleDef.errorId
+    val errorMsg: String = ruleDef.errorMsg
     val isDateFlag: Boolean = ruleDef.isDate.contains(true)
 
     Rule(id = ruleDef.id,
       errorId = errorId,
       errorMsg = errorMsg,
-      parameters = parametersOpt,
       isDate = isDateFlag,
       regex = ruleDef.regex
     )
