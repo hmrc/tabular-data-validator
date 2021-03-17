@@ -25,7 +25,7 @@ import scala.util.{Failure, Success}
 case class GroupRule(id: String,
                    errorId: String,
                    columns: Set[String],
-                   columnErrors: Map[String, String], // key - column, value - Left for template, Right for message
+                   columnErrors: Map[String, String],
                    flags: GroupRuleFlags,
                    expectedValue: String
                     )

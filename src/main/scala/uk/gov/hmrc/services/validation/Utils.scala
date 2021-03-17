@@ -23,13 +23,6 @@ import uk.gov.hmrc.services.validation.models.Cell
 import scala.util.Try
 
 object Utils {
-  def parseTemplate(template: String, parameters: Map[String, String]): String = {
-    parameters.foldLeft(template) {
-      case (accumulator, (key, value)) =>
-        Try(accumulator.replaceAll(s"@{$key}", value)).getOrElse(accumulator)
-    }
-  }
-
   def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Option[Boolean] = {
     if (cellValue.isEmpty) {
       None
@@ -41,7 +34,6 @@ object Utils {
   }
 
   def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean = {
-    println("flagValue " + flagValue + " cellToCheck " + cellToCheck + " dependentCellValue " + dependentCellValue)
     if (cellToCheck == flagValue) dependentCellValue.nonEmpty else true
   }
 

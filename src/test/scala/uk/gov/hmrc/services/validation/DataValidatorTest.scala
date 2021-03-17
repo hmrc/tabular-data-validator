@@ -81,7 +81,7 @@ class DataValidatorTest extends WordSpec with Matchers {
       |   group-rules:[
       |    {
       |      id="mandatoryCD"
-      |      errorId="102"
+      |      errorId="999"
       |      columns:["C", "D"]
       |      flags: {
       |       independent="C"
@@ -113,6 +113,9 @@ class DataValidatorTest extends WordSpec with Matchers {
     maybeErrors should be(None)
   }
 
+  class RowTestDataValidator(config: Config) extends DataValidator(config) {
+    override def validateCell(cell: Cell): Option[ValidationError] = None
+  }
   "Cell validation" when {
     val validator = new DataValidator(CONFIG)
 
@@ -140,37 +143,140 @@ class DataValidatorTest extends WordSpec with Matchers {
       }
 
     }
+  }
 
-    "evaluating an optional cell" should {
-      "return a None if the cell is empty" in {
+  "evaluating an optional cell" should {
+    "return a None if the cell is empty" in {
+      EMPTIES.foreach { emptyValue =>
+        val cell = Cell("B", 123, emptyValue)
+        val resOpt: Option[ValidationError] = validator.validateCell(cell)
+        resOpt shouldBe None
+      }
+    }
+
+    "return a validation error if cell is filled incorrectly" in {
+      val invalidEntries =  List("n0t valid", " extra-inValid", "probably still 1nvalid")
+      invalidEntries.foreach { entry =>
+        val cell = Cell("B", 123, entry)
+        val resOpt: Option[ValidationError] = validator.validateCell(cell)
+        resOpt.get shouldBe ValidationError(cell, "error.2", "002", "This is a second error message")
+      }
+    }
+
+    "return a None if the cell is filled in correctly" in {
+      val validEntries =  List("valid", " extraValid", "probably still valid")
+      validEntries.foreach { entry =>
+        val cell = Cell("B", 123, entry)
+        val resOpt: Option[ValidationError] = validator.validateCell(cell)
+        resOpt shouldBe None
+      }
+    }
+  }
+}
+  class HelperDataRows(config: Config = CONFIG) {
+    val validator: DataValidator = new RowTestDataValidator(config)
+    val happyCNeedD: Cell = Cell("C", 1, "1.1111")
+    val happyCNoD: Cell = Cell("C", 1, "2.2222")
+    val happyD: Cell = Cell("D", 1, "11")
+    val emptyC: Cell = Cell("C", 1, "")
+    val emptyD: Cell = Cell("D", 1, "")
+  }
+
+  "Row validation" must {
+    "validate group rule" when {
+      "the independent cell doesn't have the expected value and the dependent cell is empty" in new HelperDataRows() {
+        val row: Row = Row(1, Seq(happyCNoD, emptyD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isEmpty)
+      }
+      "the independent call has the expected value and the dependent cell is present" in new HelperDataRows {
+        val row: Row = Row(1, Seq(happyCNeedD, happyD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isEmpty)
+      }
+    }
+    "not validate failing group rule" when {
+      "then independent cell has the expected value but the dependent value is empty" in new HelperDataRows {
+        val row: Row = Row(1, Seq(happyCNeedD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isDefined)
+        validatedRow.get.length shouldBe 1
+        validatedRow.get.head shouldBe ValidationError(emptyD, "mandatoryCD", "999", "Field must have an entry.")
+      }
+
+    }
+    "validate when there are no group rules" in {
+      val emptyConfig =
+        """{
+          |fieldInfo: []
+          |}
+          |""".stripMargin
+
+      val validator: DataValidator = new RowTestDataValidator(ConfigFactory.parseString(emptyConfig))
+      val validatedRow: Option[List[ValidationError]] = validator.validateRow(Row(1, Seq(Cell("A", 1, ""))))
+      assert(validatedRow.isEmpty)
+    }
+    "throw exception when rule refers to non-existent cell" in {
+      val invalidConfig =
+        """{
+          |   fieldInfo: []
+          |   group-rules:[
+          |    {
+          |      id="mandatoryCD"
+          |      errorId="999"
+          |      columns:["C", "D"]
+          |      flags: {
+          |       independent="C"
+          |       dependent="D"
+          |      }
+          |      expectedValue="1.1111"
+          |      columnErrors: {
+          |        "D": {errorMsg = "Field must have an entry."}
+          |      }
+          |    }
+          |  ]
+          |
+          |}
+          |""".stripMargin
+      val validator: DataValidator = new RowTestDataValidator(ConfigFactory.parseString(invalidConfig))
+      intercept[RuntimeException](validator.validateRow(Row(1, Seq(Cell("C", 1, "1.1111")))))
+        .getMessage shouldBe "[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules."
+    }
+
+    "validate when working together with validateCell" in {
+      val validator: DataValidator = new DataValidator(CONFIG)
+      val row = Row(1, Seq(Cell("B", 1, "1234"), Cell("C", 1, "1.1111")))
+      val validatedRow = validator.validateRow(row)
+      assert(validatedRow.isDefined)
+      validatedRow.get.length shouldBe 3
+      validatedRow.get shouldBe List(
+        ValidationError(Cell("D", 1, ""), "mandatoryCD", "999", "Field must have an entry."),
+        ValidationError(Cell("A", 1, ""), "error.1", "001", "This is an error message"),
+        ValidationError(Cell("B", 1, "1234"), "error.2", "002", "This is a second error message")
+      )
+    }
+  }
+
+      "pass valid data in optional field" in {
+        val validator = new DataValidator(CONFIG)
+        val valids = List("this", "sampleText", "blablabla", "somethingsomething")
+        valids.foreach { validValue =>
+          val cell = Cell("B", 123, validValue)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt shouldBe None
+        }
+      }
+
+      "pass empty data in optional field" in {
+        val validator = new DataValidator(CONFIG)
         EMPTIES.foreach { emptyValue =>
           val cell = Cell("B", 123, emptyValue)
           val resOpt: Option[ValidationError] = validator.validateCell(cell)
           resOpt shouldBe None
         }
       }
-
-      "return a validation error if cell is filled incorrectly" in {
-        val invalidEntries =  List("n0t valid", " extra-inValid", "probably still 1nvalid")
-        invalidEntries.foreach { entry =>
-          val cell = Cell("B", 123, entry)
-          val resOpt: Option[ValidationError] = validator.validateCell(cell)
-          resOpt.get shouldBe ValidationError(cell, "error.2", "002", "This is a second error message")
-        }
-      }
-
-      "return a None if the cell is filled in correctly" in {
-        val validEntries =  List("valid", " extraValid", "probably still valid")
-        validEntries.foreach { entry =>
-          val cell = Cell("B", 123, entry)
-          val resOpt: Option[ValidationError] = validator.validateCell(cell)
-          resOpt shouldBe None
-        }
-      }
     }
-  }
 
-/*
   "Row validation" should {
     val rowNum = 123
     val VALID_B = "Polite comment."
@@ -231,7 +337,5 @@ class DataValidatorTest extends WordSpec with Matchers {
       expectErrors(Row(rowNum, Seq(B_WRONG, C_VALID, D_WRONG)), List(ERROR_B, ERROR_D))
     }
   }
-
- */
 
 }

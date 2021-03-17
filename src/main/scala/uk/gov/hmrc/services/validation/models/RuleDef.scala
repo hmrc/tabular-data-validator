@@ -56,7 +56,7 @@ object RuleDef {
       errorId = errorId,
       isDate = isDate,
       errorMsg = errorMsg,
-      regex = regex,
+      regex = regex
     )
   }
 }

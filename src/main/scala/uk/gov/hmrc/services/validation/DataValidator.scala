@@ -21,7 +21,7 @@ import uk.gov.hmrc.services.validation.config.ValidationConfig
 import uk.gov.hmrc.services.validation.models.{CellDefinition, Rule}
 import uk.gov.hmrc.services.validation.models._
 
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class DataValidator(validationConfig: Config) {
 
@@ -57,7 +57,9 @@ class DataValidator(validationConfig: Config) {
     val groupErrors: Seq[ValidationError] = cfg.groupRules.getOrElse(Nil).flatMap { rule =>
       def cellValue(column: String): String = {
         paddedCells.find(_.column == column).getOrElse(
-          throw new RuntimeException("[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules.")
+          throw new RuntimeException(
+            "[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules."
+          )
         ).value
       }
 
