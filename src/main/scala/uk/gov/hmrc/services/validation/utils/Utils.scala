@@ -24,7 +24,7 @@ import scala.util.Try
 
 object Utils {
   def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Option[Boolean] = {
-    if (cellValue.isEmpty) {
+    if (cellValue.trim.isEmpty) {
       None
     } else if (isDate) {
       Some(Try(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(cellValue)).isSuccess)
@@ -38,6 +38,6 @@ object Utils {
   }
 
   def failsMandatoryCheck(isMandatory: Boolean, cell: Cell): Boolean = {
-    if (isMandatory) cell.value.isEmpty else false
+    if (isMandatory) cell.value.trim.isEmpty else false
   }
 }
