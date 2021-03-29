@@ -81,7 +81,6 @@ class ValidationConfigTest extends WordSpec with Matchers {
       |    {
       |      id="mandatoryCD"
       |      errorId="999"
-      |      columns:["C", "D"]
       |      flags: {
       |       independent="C"
       |       dependent="D"
@@ -124,7 +123,7 @@ class ValidationConfigTest extends WordSpec with Matchers {
     }
     "return a valid list of groupRules" in new ValidationConfig(configParsed) {
       groupRules shouldBe Some(List(
-        GroupRule("mandatoryCD", "999", Set("C", "D"), Map("D" -> "Field must have an entry."),
+        GroupRule("mandatoryCD", "999", Map("D" -> "Field must have an entry."),
           GroupRuleFlags("C", "D"), "1.1111")
       ))
     }

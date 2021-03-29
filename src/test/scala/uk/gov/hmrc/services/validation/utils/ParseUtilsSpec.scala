@@ -66,7 +66,6 @@ class ParseUtilsSpec extends WordSpec with Matchers {
             |  {
             |        id="mandatoryC"
             |        errorId="C01"
-            |        columns:["C", "B"]
             |        expectedValue = "1.1111"
             |        flags: {
             |            independent = "B"
@@ -93,7 +92,6 @@ class ParseUtilsSpec extends WordSpec with Matchers {
             |  {
             |        id="mandatoryC"
             |        errorId="C01"
-            |        columns:["C", "B"]
             |        expectedValue = "1.1111"
             |        columnErrors: {
             |          "C":  {errorMsgTemplate = ${validation-types.srn.errorMsg}}
@@ -115,7 +113,6 @@ class ParseUtilsSpec extends WordSpec with Matchers {
             |  {
             |        id="mandatoryC"
             |        errorId="C01"
-            |        columns:["C", "B"]
             |        expectedValue = "1.1111"
             |        flags: {
             |          independent = "B"

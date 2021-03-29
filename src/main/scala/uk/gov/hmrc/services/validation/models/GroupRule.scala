@@ -24,7 +24,6 @@ import scala.util.{Failure, Success}
 
 case class GroupRule(id: String,
                    errorId: String,
-                   columns: Set[String],
                    columnErrors: Map[String, String],
                    flags: GroupRuleFlags,
                    expectedValue: String
@@ -33,15 +32,18 @@ case class GroupRule(id: String,
 object GroupRule {
 
   val EXPECTED_VALUE: String = "expectedValue"
-  val COLUMNS: String = "columns"
   val FLAGS: String = "flags"
 
   def apply(rowConfig: Config): GroupRule = {
     val id = rowConfig.getString(Rule.RULE_ID)
     val errorId = rowConfig.getString(Rule.ERROR_ID)
 
-    val columns: Set[String] = getStringSet(rowConfig, COLUMNS)
-    if (columns.isEmpty) throw new IllegalArgumentException(s"Columns for row rule $id are not given.")
+    val groupRulesFlags = getTryGroupRuleFlags(rowConfig, FLAGS) match {
+      case Success(flags) => flags
+      case Failure(exception) => throw exception
+    }
+
+    val columns = Set(groupRulesFlags.independent, groupRulesFlags.dependent)
 
     val columnErrors: Map[String, String] = columns.map { column =>
       val path = s"columnErrors.$column"
@@ -54,16 +56,10 @@ object GroupRule {
       }
     }.filter(_.isDefined).flatten.toMap
 
-    val groupRulesFlags = getTryGroupRuleFlags(rowConfig, FLAGS) match {
-      case Success(flags) => flags
-      case Failure(exception) => throw exception
-    }
-
     val expectedValue: String = rowConfig.getString(EXPECTED_VALUE)
 
     GroupRule(id = id,
       errorId = errorId,
-      columns = columns,
       columnErrors = columnErrors,
       flags = groupRulesFlags,
       expectedValue = expectedValue

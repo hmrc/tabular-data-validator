@@ -20,11 +20,10 @@ import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
 
 class GroupRuleTest extends WordSpec with Matchers {
-  def configString(columns: Boolean = true, flags: Boolean = true): String =
+  def configString(flags: Boolean = true): String =
     s"""{
       |      id="mandatoryCD"
       |      errorId="999"
-      |      ${if(columns) """columns:["C", "D"]""" else "columns:[]"}
       |      ${if (flags) """flags: {
       |       independent="C"
       |       dependent="D"
@@ -43,15 +42,10 @@ class GroupRuleTest extends WordSpec with Matchers {
       groupRule shouldBe GroupRule(
         "mandatoryCD",
         "999",
-        Set("C", "D"),
         Map("D" -> "Field must have an entry."),
         GroupRuleFlags("C", "D"),
         "1.1111"
       )
-    }
-    "not parse if given config without columns" in {
-      val configIllegal: Config = ConfigFactory.parseString(configString(columns = false))
-      intercept[IllegalArgumentException](GroupRule(configIllegal)).getMessage shouldBe "Columns for row rule mandatoryCD are not given."
     }
     "not parse if given config without flags" in {
       val configIllegal: Config = ConfigFactory.parseString(configString(flags = false))

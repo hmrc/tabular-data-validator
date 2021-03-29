@@ -82,7 +82,6 @@ class DataValidatorTest extends WordSpec with Matchers {
       |    {
       |      id="mandatoryCD"
       |      errorId="999"
-      |      columns:["C", "D"]
       |      flags: {
       |       independent="C"
       |       dependent="D"
@@ -225,7 +224,6 @@ class DataValidatorTest extends WordSpec with Matchers {
           |    {
           |      id="mandatoryCD"
           |      errorId="999"
-          |      columns:["C", "D"]
           |      flags: {
           |       independent="C"
           |       dependent="D"
