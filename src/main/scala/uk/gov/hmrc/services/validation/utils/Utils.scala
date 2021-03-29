@@ -34,7 +34,7 @@ object Utils {
   }
 
   def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean = {
-    if (cellToCheck == flagValue) dependentCellValue.nonEmpty else true
+    if (cellToCheck.matches("^" + flagValue + "$")) dependentCellValue.nonEmpty else true
   }
 
   def failsMandatoryCheck(isMandatory: Boolean, cell: Cell): Boolean = {
