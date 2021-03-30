@@ -14,41 +14,30 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.services.validation.config
+package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.Config
-import ParseUtils._
+import uk.gov.hmrc.services.validation.utils.ParseUtils.parseConfig
 
-case class CellDef(column: String, cellName: String, mandatory: Boolean, rules: List[Rule])
+case class CellDefinition(column: String, cellName: String, mandatory: Boolean, rule: Rule)
 
-object CellDef {
+object CellDefinition {
   val COLUMN = "column"
   val CELL_NAME = "cellName"
   val MANDATORY = "mandatory"
-  val RULE_REF = "ruleRef"
   val CELL_RULE = "error"
 
-
-  def apply(cellConfig: Config, ruleRefResolver: RuleRefResolver): CellDef = {
+  def apply(cellConfig: Config): CellDefinition = {
     val column = cellConfig.getString(COLUMN)
     val cellName = cellConfig.getString(CELL_NAME)
     val manda = cellConfig.getBoolean(MANDATORY)
 
-    //errors mapping
-    val cellRules: Option[List[Rule]] =
-      parseConfigListOpt(CELL_RULE, cellConfig) {errorConfig => ruleRefResolver.toRule(RuleDef(errorConfig))/*ruleEndorser.toRule(RuleDef(errorConfig))*/}.orElse(Some(Nil))
+    val cellRule: Rule = parseConfig(CELL_RULE, cellConfig) {errorConfig => Rule(errorConfig)}
 
-    //ruleRefs mapping
-    val rules: Option[List[Rule]] =
-      parseConfigListOpt(RULE_REF, cellConfig) {refConfig => ruleRefResolver.toRule(RuleRef(refConfig))}.orElse(Some(Nil))
-
-    // always add mandatory rule to a cell, further it will be processed by engine depending on cell's mandatory flag
-    val mandaRule: Rule = ruleRefResolver.MANDATORY_RULE
-
-    CellDef(column = column,
+    CellDefinition(column = column,
       cellName = cellName,
       mandatory = manda,
-      rules = mandaRule :: (cellRules.get ::: rules.get)
+      rule = cellRule
     )
   }
 }

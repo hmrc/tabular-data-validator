@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.helpers
+package uk.gov.hmrc.services.validation.models
 
-import java.io.{File, FileReader}
 
-import au.com.bytecode.opencsv.CSVReader
-import com.typesafe.config.{Config, ConfigFactory}
-import scala.collection.JavaConverters._
+case class Row(rowNum: Int, cells: Seq[Cell]) {
+  require(cells.forall(_.row == rowNum))
 
-object FileHelper {
-
-  def readInputCsv(file: File): List[List[String]] = {
-    val reader = new CSVReader(new FileReader(file))
-
-    def readLines(reader: CSVReader): List[List[String]] = {
-      reader.readAll.asScala.toList.map(_.toList)
-    }
-    readLines(reader)
-  }
-
-  def loadConfig(file: File): Config = {
-    ConfigFactory.parseFile(file)
-  }
+  val cellsByColumn: Map[String, Cell] = cells.map { c => c.column -> c }.toMap
 }
+
+case class Cell(column: String, row: Int, value: String)
+
+case class ValidationError(cell: Cell, ruleId: String, errorId: String, errorMsg: String)
+
+case class GroupRuleFlags(independent: String, dependent: String)
+

@@ -19,90 +19,80 @@ package uk.gov.hmrc.services.validation
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.OptionValues._
-import uk.gov.hmrc.services.validation.config.RuleRef
+import uk.gov.hmrc.services.validation.models._
 
-class DataValidatorTest extends WordSpec with Matchers{
+class DataValidatorTest extends WordSpec with Matchers {
 
   val CONFIG_STR: String =
     """
       | {
       |   fieldInfo: [
       |     {
-      |       column: "A"
-      |       cellName = "Greeting"
-      |       mandatory: true
-      |       error: [
+      |      column = "A"
+      |      cellName = "1. Date of event (yyyy-mm-dd)"
+      |      mandatory = true
+      |      error:
       |         {
-      |           id: "custom"
-      |           errorId: "errorId_1"
-      |           errorMsgTemplate: "@{cellName} is not a helloworld."
-      |           expr: "data == \"Hello, World!\""
+      |          id = "error.1"
+      |          errorMsg = "This is an error message"
+      |          errorId = "001"
+      |          isDate = true
       |         }
-      |       ]
-      |     }
-      |     {
-      |       column: "B"
-      |       cellName = "Optional comment"
-      |       mandatory: false
-      |       error: [
-      |         {
-      |           id: "custom.2"
-      |           errorId: "errorId_2"
-      |           errorMsg: "Comment must be polite!"
-      |           expr: "!data.contains(\"damn\")"
-      |         }
-      |       ]
+      |    }
+      |    {
+      |      column: "B"
+      |      cellName = "Optional comment"
+      |      mandatory: false
+      |      error:
+      |       {
+      |        id = "error.2"
+      |        errorMsg = "This is a second error message"
+      |        errorId = "002"
+      |        isDate = false
+      |        regex = "[a-zA-Z ]*"
+      |       }
       |     }
       |     {
       |       column: "C"
-      |       cellName = "Optional something"
-      |       mandatory: false
+      |       cellName = "Optional something, 1.1111"
+      |       mandatory: true
+      |       error:
+      |       {
+      |        id = "error.3"
+      |        errorMsg = "This is an error message for column C"
+      |        errorId = "003"
+      |        isDate = false
+      |        regex = "[0-9]{1,13}\\.[0-9]{4}"
+      |       }
       |     }
       |     {
       |       column: "D"
-      |       cellName = "Optional D"
+      |       cellName = "Optional D, mandatory if C has yes, int"
       |       mandatory: false
-      |       error: [
-      |         {
-      |           id: "custom.D"
-      |           errorId: "errorId_D"
-      |           errorMsgTemplate: "'@{cellName}' is too short!"
-      |           expr: "data.length() > 5"
-      |         }
-      |       ]
+      |       error: {
+      |          id = "error4"
+      |          errorMsg = "Not like this my dude"
+      |          regex="[0-9]{1,6}"
+      |          errorId = "002"
+      |        }
       |     }
       |   ]
       |
-      | definitions {
-      |  script : [
-      |    "def notEmpty(data) {"
-      |      "!(data == null || data.trim().isEmpty())"
-      |    "}"
-      |  ]
-      | }
-      |
       |   group-rules:[
       |    {
-      |      id="mandatoryBCD"
-      |      errorId="102"
-      |      columns:["B", "C", "D"]
-      |      expr="notEmpty(dataD) || notEmpty(dataB) || notEmpty(dataC)"
+      |      id="mandatoryCD"
+      |      errorId="999"
+      |      flags: {
+      |       independent="C"
+      |       dependent="D"
+      |      }
+      |      expectedValue="1.1111"
       |      columnErrors: {
-      |        "B": {errorMsgTemplate = "'@{cellNameB}' or '@{cellNameC}' or '@{cellNameD}' must have an entry."}
-      |        "C": {errorMsg = "Field must have an entry."}
+      |        "D": {errorMsg = "Field must have an entry."}
       |      }
       |    }
       |  ]
       |
-      |
-      |   rules: [
-      |     {
-      |       id="MANDATORY"
-      |       errorId="002"
-      |       errorMsgTemplate = "@{cellName} must have an entry."
-      |       expr="!(data == null || data.trim().isEmpty())"
-      |     }
-      |   ]
       | }
     """.stripMargin
   val CONFIG: Config = ConfigFactory.parseString(CONFIG_STR)
@@ -110,437 +100,178 @@ class DataValidatorTest extends WordSpec with Matchers{
   val EMPTIES: List[String] = List("", " ", "  ", "                ")
 
   def expectErrors(row: Row, expectedErrors: List[ValidationError], config: Config = CONFIG) = {
-    val validator = DataValidator(config)
+    val validator = new DataValidator(config)
     val maybeErrors: Option[List[ValidationError]] = validator.validateRow(row)
-    maybeErrors should not be empty
-    maybeErrors.value shouldBe expectedErrors
-  }
-
-  def expectErrorsInRows(rows: List[List[String]], expectedErrors: List[ValidationError], config: Config = CONFIG, contextObjectOpt: Option[AnyRef] = None, ignoreBlankRows : Boolean = false) = {
-    val maybeErrors: Option[List[ValidationError]] = DataValidator(config).validateRows(rows, contextObjectOpt,0,ignoreBlankRows)
-    maybeErrors should not be empty
-
-/*
-    for(i <- 0 until expectedErrors.size) {
-      maybeErrors.foreach(list => list.lift(i).foreach(println))
-      println(expectedErrors(i))
-      println
-      println
-    }
-*/
-
+    maybeErrors should not be None
     maybeErrors.value shouldBe expectedErrors
   }
 
   def expectOk(row: Row, config: Config = CONFIG) = {
-    val validator = DataValidator(config)
+    val validator = new DataValidator(config)
     val maybeErrors: Option[List[ValidationError]] = validator.validateRow(row)
     maybeErrors should be(None)
   }
 
-  def expectOkInRows(rows: List[List[String]], config: Config = CONFIG) = {
-    val maybeErrors: Option[List[ValidationError]] = DataValidator(config).validateRows(rows, None)
-    maybeErrors should be(None)
+  class RowTestDataValidator(config: Config) extends DataValidator(config) {
+    override def validateCell(cell: Cell): Option[ValidationError] = None
   }
 
+  "Cell validation" when {
+    val validator = new DataValidator(CONFIG)
 
-    "Mandatory validation" should {
-        "give mandatory error on mandatory field empty" in {
-          val validator = DataValidator(CONFIG)
-          EMPTIES.foreach { case emptyValue =>
-            val cell = Cell("A", 123, emptyValue)
-            val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
-              resOpt should not be empty
-              resOpt.value shouldBe List(
-                ValidationError(cell, RuleRef.MANDATORY_RULE_REF.id, "002", "Greeting must have an entry.")
-              )
-          }
-        }
-
-      "give errors on mandatory field invalid values" in {
-        val validator = DataValidator(CONFIG)
-        val invalids: List[String] = List("bla", " Hello, World!", "hello world", "blablabla")
-        invalids.foreach { case invalidValue =>
-          val cell = Cell("A", 123, invalidValue)
-          val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
-          resOpt should not be empty
-          resOpt.value shouldBe List(
-            ValidationError(cell, "custom", "errorId_1", "Greeting is not a helloworld.")
-          )
+    "evaluating a mandatory cell" should {
+      "return a validation error if the cell is empty" in {
+        EMPTIES.foreach { emptyValue =>
+          val cell = Cell("A", 123, emptyValue)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt should not be None
+          resOpt.get shouldBe ValidationError(cell, "error.1", "001", "This is an error message")
         }
       }
 
-      "pass mandatory field with proper value" in {
-        val validator = DataValidator(CONFIG)
-        val cell = Cell("A", 123, "Hello, World!")
-        val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
-        resOpt should be (None)
+      "return a validation error if expecting a date and not receiving one" in {
+        val cell = Cell("A", 123, "notADateFam")
+        val resOpt: Option[ValidationError] = validator.validateCell(cell)
+        resOpt should not be None
+        resOpt.get shouldBe ValidationError(cell, "error.1", "001", "This is an error message")
       }
 
+      "return None if the cell is valid" in {
+        val cell = Cell("A", 123, "1990-11-10")
+        val resOpt: Option[ValidationError] = validator.validateCell(cell)
+        resOpt shouldBe None
+      }
 
     }
 
-    "Optional validation" should {
-      "give errors on non-empty invalid data in optional field" in {
-        val validator = DataValidator(CONFIG)
-        val invalids: List[String] = List("damn things", "So damn!", "This was damn situation!")
-        invalids.foreach { case invalidValue =>
-          val cell = Cell("B", 123, invalidValue)
-          val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
-          resOpt should not be empty
-          resOpt.value shouldBe List(
-            ValidationError(cell, "custom.2", "errorId_2", "Comment must be polite!")
-          )
-        }
-      }
-
-      "pass valid data in optional field" in {
-        val validator = DataValidator(CONFIG)
-        val valids = List("This is my comment.", "It was great", "blablabla", "something-something")
-        valids.foreach { case validValue =>
-          val cell = Cell("B", 123, validValue)
-          val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
-          resOpt shouldBe None
-        }
-      }
-
-      "pass empty data in optional field" in {
-        val validator = DataValidator(CONFIG)
-        EMPTIES.foreach { case emptyValue =>
+    "evaluating an optional cell" should {
+      "return a None if the cell is empty" in {
+        EMPTIES.foreach { emptyValue =>
           val cell = Cell("B", 123, emptyValue)
-          val resOpt: Option[List[ValidationError]] = validator.validateCell(cell)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt shouldBe None
+        }
+      }
+
+      "return a validation error if cell is filled incorrectly" in {
+        val invalidEntries = List("n0t valid", " extra-inValid", "probably still 1nvalid")
+        invalidEntries.foreach { entry =>
+          val cell = Cell("B", 123, entry)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
+          resOpt.get shouldBe ValidationError(cell, "error.2", "002", "This is a second error message")
+        }
+      }
+
+      "return a None if the cell is filled in correctly" in {
+        val validEntries = List("valid", " extraValid", "probably still valid")
+        validEntries.foreach { entry =>
+          val cell = Cell("B", 123, entry)
+          val resOpt: Option[ValidationError] = validator.validateCell(cell)
           resOpt shouldBe None
         }
       }
     }
+  }
 
-  "Row validation" should {
-    val rowNum = 123
-    val VALID_B = "Polite comment."
-    val VALID_C = "anything is valid"
-    val VALID_D = "123456"
+  class HelperDataRows(config: Config = CONFIG) {
+    val validator: DataValidator = new RowTestDataValidator(config)
+    val happyCNeedD: Cell = Cell("C", 1, "1.1111")
+    val happyCNoD: Cell = Cell("C", 1, "2.2222")
+    val happyD: Cell = Cell("D", 1, "11")
+    val emptyC: Cell = Cell("C", 1, "")
+    val emptyD: Cell = Cell("D", 1, "")
+  }
 
-    val INVALID_B = "damn comment."
-    val INVALID_D = "short"
-
-    val B_VALID = Cell("B", rowNum, VALID_B)
-    val C_VALID = Cell("C", rowNum, VALID_C)
-    val D_VALID = Cell("D", rowNum, VALID_D)
-
-    val B_WRONG = Cell("B", rowNum, INVALID_B)
-    val D_WRONG = Cell("D", rowNum, INVALID_D)
-
-    val B_EMPTY = Cell("B", rowNum, EMPTIES(0))
-    val C_EMPTY = Cell("C", rowNum, EMPTIES(1))
-    val D_EMPTY = Cell("D", rowNum, EMPTIES(2))
-
-    val ROW_EMPTIES = Row(rowNum, Seq(B_EMPTY, C_EMPTY,D_EMPTY))
-
-    "raise errors for appropriate cells on wrong row values" in {
-      val row = ROW_EMPTIES
-      expectErrors(row, List(
-        ValidationError(B_EMPTY, "mandatoryBCD", "102", "'Optional comment' or 'Optional something' or 'Optional D' must have an entry."),
-        ValidationError(C_EMPTY, "mandatoryBCD", "102", "Field must have an entry.")
-      ))
+  "Row validation" must {
+    "validate group rule" when {
+      "the independent cell doesn't have the expected value and the dependent cell is empty" in new HelperDataRows() {
+        val row: Row = Row(1, Seq(happyCNoD, emptyD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isEmpty)
+      }
+      "the independent call has the expected value and the dependent cell is present" in new HelperDataRows {
+        val row: Row = Row(1, Seq(happyCNeedD, happyD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isEmpty)
+      }
     }
+    "not validate failing group rule" when {
+      "then independent cell has the expected value but the dependent value is empty" in new HelperDataRows {
+        val row: Row = Row(1, Seq(happyCNeedD))
+        val validatedRow: Option[List[ValidationError]] = validator.validateRow(row)
+        assert(validatedRow.isDefined)
+        validatedRow.get.length shouldBe 1
+        validatedRow.get.head shouldBe ValidationError(emptyD, "mandatoryCD", "999", "Field must have an entry.")
+      }
 
-    "pass appropriate cells with proper row values" in {
-      val rows = Seq(
-        Row(rowNum, Seq(B_EMPTY,  C_EMPTY,  D_VALID)),
-        Row(rowNum, Seq(B_EMPTY,  C_VALID,  D_EMPTY)),
-        Row(rowNum, Seq(B_VALID,  C_EMPTY,  D_EMPTY)),
-        Row(rowNum, Seq(B_VALID,  C_EMPTY,  D_VALID)),
-        Row(rowNum, Seq(B_VALID,  C_VALID,  D_EMPTY)),
-        Row(rowNum, Seq(B_VALID,  C_VALID,  D_VALID))
-      )
-
-      rows.foreach { expectOk(_) }
     }
+    "validate when there are no group rules" in {
+      val emptyConfig =
+        """{
+          |fieldInfo: []
+          |}
+          |""".stripMargin
 
-    "invoke individual cells validation with proper row values" in {
-      val ERROR_B = ValidationError(B_WRONG, "custom.2", "errorId_2", "Comment must be polite!")
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_EMPTY, D_EMPTY)), List(ERROR_B))
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_VALID, D_EMPTY)), List(ERROR_B))
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_EMPTY, D_VALID)), List(ERROR_B))
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_VALID, D_VALID)), List(ERROR_B))
-
-      val ERROR_D = ValidationError(D_WRONG, "custom.D", "errorId_D", "'Optional D' is too short!")
-      expectErrors(Row(rowNum, Seq(B_EMPTY, C_EMPTY, D_WRONG)), List(ERROR_D))
-      expectErrors(Row(rowNum, Seq(B_VALID, C_EMPTY, D_WRONG)), List(ERROR_D))
-      expectErrors(Row(rowNum, Seq(B_EMPTY, C_VALID, D_WRONG)), List(ERROR_D))
-      expectErrors(Row(rowNum, Seq(B_VALID, C_VALID, D_WRONG)), List(ERROR_D))
-
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_EMPTY, D_WRONG)), List(ERROR_B, ERROR_D))
-      expectErrors(Row(rowNum, Seq(B_WRONG, C_VALID, D_WRONG)), List(ERROR_B, ERROR_D))
+      val validator: DataValidator = new RowTestDataValidator(ConfigFactory.parseString(emptyConfig))
+      val validatedRow: Option[List[ValidationError]] = validator.validateRow(Row(1, Seq(Cell("A", 1, ""))))
+      assert(validatedRow.isEmpty)
     }
-
-    "take external context into account" in {
-      val config: Config = ConfigFactory.parseString(
-        """
-          | {
-          |   fieldInfo: [
-          |     {
-          |       column: "A"
-          |       cellName = "Number in range"
-          |       mandatory: true
-          |       error: [
-          |         {
-          |           id: "custom"
-          |           errorId: "errorId_1"
-          |           errorMsgTemplate: "@{cellName} is not in a range by functions."
-          |           expr: "data >= getMinValue() && data <= getMaxValue()"
-          |         }
-          |         {
-          |           id: "custom.2"
-          |           errorId: "errorId_2"
-          |           errorMsgTemplate: "@{cellName} is not in a range by functions accessed as context bean properties."
-          |           expr: "data >= minValue && data <= maxValue"
-          |         }
-          |       ]
-          |     }
-          |     {
-          |       column: "B"
-          |       cellName = "Optional number"
-          |       mandatory: false
-          |     }
-          |
-          |   ]
-          |
+    "throw exception when rule refers to non-existent cell" in {
+      val invalidConfig =
+        """{
+          |   fieldInfo: []
           |   group-rules:[
           |    {
-          |      id="A & B ranges"
-          |      errorId="102"
-          |      columns:["A", "B"]
-          |      expr="dataA <= maxValue && dataB >= getMinValue()"
+          |      id="mandatoryCD"
+          |      errorId="999"
+          |      flags: {
+          |       independent="C"
+          |       dependent="D"
+          |      }
+          |      expectedValue="1.1111"
           |      columnErrors: {
-          |        "A": {errorMsgTemplate = "'@{cellNameA}' or '@{cellNameB}' is out of ranges."}
-          |        "B": {errorMsg = "Check the value!"}
+          |        "D": {errorMsg = "Field must have an entry."}
           |      }
           |    }
           |  ]
           |
-          |   rules: [
-          |     {
-          |       id="MANDATORY"
-          |       errorId="002"
-          |       errorMsgTemplate = "@{cellName} must have an entry."
-          |       expr="!(data == null || data.trim().isEmpty())"
-          |     }
-          |   ]
-          | }
-        """.stripMargin)
-
-      val context = new AnyRef {
-        def getMinValue = 10
-        def getMaxValue = 100
-      }
-
-      val rows: List[List[String]] = List(
-        List("101", "5"), //0 AB
-        List("247", "320"), //1 A
-        List("15", "1"), //2 B
-        List("20", "236") //3
-      )
-
-      expectErrorsInRows(rows, List(
-        ValidationError(Cell("A", 0, "101"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 0, "5"), "A & B ranges", "102", "Check the value!"),
-
-        ValidationError(Cell("A", 0, "101"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 0, "101"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 1, "247"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 1, "320"), "A & B ranges", "102", "Check the value!"),
-
-        ValidationError(Cell("A", 1, "247"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 1, "247"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 2, "15"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 2, "1"), "A & B ranges", "102", "Check the value!")
-
-      ), config, Some(context), ignoreBlankRows = false)
-
-
-
-      val dataWithEmptyRows: List[List[String]] = List(
-        List("",""),
-        List("101", "5"), //0 AB
-        List("247", "320"), //1 A
-        List("",""),
-        List("15", "1"), //2 B
-        List("20", "236"), //3
-        List("","")
-      )
-
-      expectErrorsInRows(dataWithEmptyRows, List(
-        ValidationError(Cell("A", 1, "101"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 1, "5"), "A & B ranges", "102", "Check the value!"),
-
-        ValidationError(Cell("A", 1, "101"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 1, "101"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 2, "247"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 2, "320"), "A & B ranges", "102", "Check the value!"),
-
-        ValidationError(Cell("A", 2, "247"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 2, "247"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 4, "15"), "A & B ranges", "102", "'Number in range' or 'Optional number' is out of ranges."),
-        ValidationError(Cell("B", 4, "1"), "A & B ranges", "102", "Check the value!")
-
-      ), config, Some(context), ignoreBlankRows = true)
-
-
+          |}
+          |""".stripMargin
+      val validator: DataValidator = new RowTestDataValidator(ConfigFactory.parseString(invalidConfig))
+      intercept[RuntimeException](validator.validateRow(Row(1, Seq(Cell("C", 1, "1.1111")))))
+        .getMessage shouldBe "[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules."
     }
 
-
-  }
-
-  "List validation" should {
-    val A_WRONG = "wrong A value"
-    val A_VALID = "Hello, World!"
-
-    val B_WRONG = "It was a damn thing!"
-    val B_VALID = "Valid comment."
-
-    "validate properly" in {
-      val rows: List[List[String]] = List(
-        List(EMPTIES.head, B_VALID), //0
-        List(EMPTIES.last, B_VALID), //1
-        List(A_WRONG, B_VALID), //2
-        List(A_WRONG, B_VALID), //3
-        List(A_VALID, B_WRONG), //4
-        List(A_VALID, B_WRONG), //5
-        List("", B_WRONG), //6
-        List(A_WRONG, B_WRONG) //7
+    "validate when working together with validateCell" in {
+      val validator: DataValidator = new DataValidator(CONFIG)
+      val row = Row(1, Seq(Cell("B", 1, "1234"), Cell("C", 1, "1.1111")))
+      val validatedRow = validator.validateRow(row)
+      assert(validatedRow.isDefined)
+      validatedRow.get.length shouldBe 3
+      validatedRow.get shouldBe List(
+        ValidationError(Cell("D", 1, ""), "mandatoryCD", "999", "Field must have an entry."),
+        ValidationError(Cell("A", 1, ""), "error.1", "001", "This is an error message"),
+        ValidationError(Cell("B", 1, "1234"), "error.2", "002", "This is a second error message")
       )
-
-      val expectedErrors = List(
-        ValidationError(Cell("A", 0, EMPTIES.head), RuleRef.MANDATORY_RULE_REF.id, "002", "Greeting must have an entry."),
-
-        ValidationError(Cell("A", 1, EMPTIES.last), RuleRef.MANDATORY_RULE_REF.id, "002", "Greeting must have an entry."),
-
-        ValidationError(Cell("A", 2, A_WRONG), "custom", "errorId_1", "Greeting is not a helloworld."),
-
-        ValidationError(Cell("A", 3, A_WRONG), "custom", "errorId_1", "Greeting is not a helloworld."),
-
-        ValidationError(Cell("B", 4, B_WRONG), "custom.2", "errorId_2", "Comment must be polite!"),
-
-        ValidationError(Cell("B", 5, B_WRONG), "custom.2", "errorId_2", "Comment must be polite!"),
-
-        ValidationError(Cell("A", 6, ""), RuleRef.MANDATORY_RULE_REF.id, "002", "Greeting must have an entry."),
-        ValidationError(Cell("B", 6, B_WRONG), "custom.2", "errorId_2", "Comment must be polite!"),
-
-        ValidationError(Cell("A", 7, A_WRONG), "custom", "errorId_1", "Greeting is not a helloworld."),
-        ValidationError(Cell("B", 7, B_WRONG), "custom.2", "errorId_2", "Comment must be polite!")
-      )
-
-      expectErrorsInRows(rows, expectedErrors)
-    }
-
-    "pass valid values" in {
-      val rows: List[List[String]] = List(
-        List(A_VALID, B_VALID), //0
-        List(A_VALID, EMPTIES(0)), //1
-        List(A_VALID, EMPTIES(1)), //2
-        List(A_VALID, EMPTIES(2)), //3
-        List(A_VALID, EMPTIES(3)) //4
-      )
-
-      expectOkInRows(rows)
-    }
-
-    "take external context into account" in {
-      val config: Config = ConfigFactory.parseString(
-        """
-          | {
-          |   fieldInfo: [
-          |     {
-          |       column: "A"
-          |       cellName = "Number in range"
-          |       mandatory: true
-          |       error: [
-          |         {
-          |           id: "custom"
-          |           errorId: "errorId_1"
-          |           errorMsgTemplate: "@{cellName} is not in a range by functions."
-          |           expr: "data >= getMinValue() && data <= getMaxValue()"
-          |         }
-          |         {
-          |           id: "custom.2"
-          |           errorId: "errorId_2"
-          |           errorMsgTemplate: "@{cellName} is not in a range by functions accessed as context bean properties."
-          |           expr: "data >= minValue && data <= maxValue"
-          |         }
-          |         {
-          |           id: "custom.3"
-          |           errorId: "errorId_3"
-          |           errorMsgTemplate: "@{cellName} is greater than value accessed as constant with prefix \"get\" in context ."
-          |           expr: "data <= constantMaxValue"
-          |         }
-          |         {
-          |           id: "custom.4"
-          |           errorId: "errorId_4"
-          |           errorMsgTemplate: "@{cellName} is greater than val accessed as function."
-          |           expr: "data <= veryMaxValueVal()"
-          |         }
-          |       ]
-          |     }
-          |   ]
-          |
-          |
-          |   rules: [
-          |     {
-          |       id="MANDATORY"
-          |       errorId="002"
-          |       errorMsgTemplate = "@{cellName} must have an entry."
-          |       expr="!(data == null || data.trim().isEmpty())"
-          |     }
-          |   ]
-          | }
-        """.stripMargin)
-
-      val context = new AnyRef {
-        def getMinValue = 10
-        def getMaxValue = 100
-
-        val getConstantMaxValue = 100 // this can be accessed like bean property: constantMaxValue
-        val veryMaxValueVal = 499 // this can be accessed like function: veryMaxValueVal()
-      }
-
-      val rows: List[List[String]] = List(
-        List("0"), //0
-        List("1"), //1
-        List("9"), //2
-        List("10"), //3
-        List("15"), //4
-        List("99"), //5
-        List("100"), //6
-        List("101"), //7
-        List("500") //8
-      )
-
-      expectErrorsInRows(rows, List(
-        ValidationError(Cell("A", 0, "0"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 0, "0"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 1, "1"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 1, "1"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 2, "9"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 2, "9"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-
-        ValidationError(Cell("A", 7, "101"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 7, "101"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-        ValidationError(Cell("A", 7, "101"), "custom.3", "errorId_3", "Number in range is greater than value accessed as constant with prefix \"get\" in context ."),
-
-        ValidationError(Cell("A", 8, "500"), "custom", "errorId_1", "Number in range is not in a range by functions."),
-        ValidationError(Cell("A", 8, "500"), "custom.2", "errorId_2", "Number in range is not in a range by functions accessed as context bean properties."),
-        ValidationError(Cell("A", 8, "500"), "custom.3", "errorId_3", "Number in range is greater than value accessed as constant with prefix \"get\" in context ."),
-        ValidationError(Cell("A", 8, "500"), "custom.4", "errorId_4", "Number in range is greater than val accessed as function.")
-
-      ), config, Some(context))
     }
   }
 
+  "pass valid data in optional field" in {
+    val validator = new DataValidator(CONFIG)
+    val valids = List("this", "sampleText", "blablabla", "somethingsomething")
+    valids.foreach { validValue =>
+      val cell = Cell("B", 123, validValue)
+      val resOpt: Option[ValidationError] = validator.validateCell(cell)
+      resOpt shouldBe None
+    }
+  }
+
+  "pass empty data in optional field" in {
+    val validator = new DataValidator(CONFIG)
+    EMPTIES.foreach { emptyValue =>
+      val cell = Cell("B", 123, emptyValue)
+      val resOpt: Option[ValidationError] = validator.validateCell(cell)
+      resOpt shouldBe None
+    }
+  }
 }
