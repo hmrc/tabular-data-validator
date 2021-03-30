@@ -35,7 +35,7 @@ lazy val project = Project(appName, file("."))
 enablePlugins(SbtAutoBuildPlugin, SbtGitVersioning, SbtArtifactory)
 
 libraryDependencies ++= appDependencies
-majorVersion := 1
+majorVersion := 2
 
 scalaSettings
 defaultSettings()
