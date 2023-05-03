@@ -18,6 +18,6 @@ majorVersion := 1
 
 scalaSettings
 defaultSettings()
-scalaVersion := "2.12.16"
+scalaVersion := "2.13.10"
 
 Test / testOptions += Tests.Argument("-oD","-u", "target/test-reports", "-h", "target/test-reports/html-report")
