@@ -17,9 +17,10 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class GroupRuleTest extends WordSpec with Matchers {
+class GroupRuleTest extends AnyWordSpecLike with Matchers {
   def configString(flags: Boolean = true): String =
     s"""{
       |      id="mandatoryCD"

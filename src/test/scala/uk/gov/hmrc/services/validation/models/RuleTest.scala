@@ -17,9 +17,10 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class RuleTest extends WordSpec with Matchers {
+class RuleTest extends AnyWordSpecLike with Matchers {
 
   "Rule" should {
     "be correctly instantiated from valid config with isDate set to true" in {
