@@ -19,7 +19,7 @@ package uk.gov.hmrc.services.validation.utils
 import com.typesafe.config.Config
 import uk.gov.hmrc.services.validation.models.GroupRuleFlags
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 object ParseUtils {

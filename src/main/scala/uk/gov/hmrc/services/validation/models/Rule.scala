@@ -26,7 +26,7 @@ case class Rule(id: String,
                 errorMsg: String,
                 isDate: Boolean,
                 regex: Option[String]) {
-  require(regex.isDefined ^ isDate.equals(true))
+  require(regex.isDefined ^ isDate)
 }
 
 object Rule {

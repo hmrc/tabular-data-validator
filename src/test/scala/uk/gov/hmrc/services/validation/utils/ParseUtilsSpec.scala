@@ -17,12 +17,13 @@
 package uk.gov.hmrc.services.validation.utils
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import uk.gov.hmrc.services.validation.models.{CellDefinition, Rule}
 
 import scala.util.{Failure, Success}
 
-class ParseUtilsSpec extends WordSpec with Matchers {
+class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
 
   "In ParseUtils" when {
     val parser = ParseUtils

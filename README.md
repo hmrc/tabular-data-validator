@@ -9,6 +9,12 @@ the data.
 
 The rules are supplied as Regex.
 
+### Checking Repo
+Run the following script to check scalatyle/dependency updates:
+```
+./run_all_tests.sh
+```
+
 Getting Started
 =====
 Creating a data validation instance.

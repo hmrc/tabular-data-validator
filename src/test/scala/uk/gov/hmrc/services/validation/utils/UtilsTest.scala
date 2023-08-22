@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.services.validation.utils
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class UtilsTest extends WordSpec with Matchers {
+class UtilsTest extends AnyWordSpecLike with Matchers {
 
   "Utils" when {
     "calling compareCellToRule" should {

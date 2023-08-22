@@ -17,9 +17,10 @@
 package uk.gov.hmrc.services.validation.models
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class CellDefinitionTest extends WordSpec with Matchers {
+class CellDefinitionTest extends AnyWordSpecLike with Matchers {
   val configString: String =
     """
       | {

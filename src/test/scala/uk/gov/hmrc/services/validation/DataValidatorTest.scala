@@ -17,11 +17,12 @@
 package uk.gov.hmrc.services.validation
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.OptionValues._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 import uk.gov.hmrc.services.validation.models._
 
-class DataValidatorTest extends WordSpec with Matchers {
+class DataValidatorTest extends AnyWordSpecLike with Matchers {
 
   val CONFIG_STR: String =
     """
