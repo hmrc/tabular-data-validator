@@ -19,7 +19,6 @@ logs
 **/*.DS_Store
 
 **/target/*
-target
 
 **/bin/*
 **/lib/*
@@ -34,4 +33,4 @@ sauce_connect.log
 
 .ensime*
 
-**/codekit-config.json
+.bsp
