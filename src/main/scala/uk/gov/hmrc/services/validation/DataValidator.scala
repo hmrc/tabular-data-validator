@@ -30,17 +30,17 @@ class DataValidator(validationConfig: Config) {
 
   def validateCell(cell: Cell): Option[ValidationError] = {
 
-    val celldef: CellDefinition = cfg.cellsByColumn(cell.column)
-    val rule: Rule = celldef.rule
+    val celldef: CellDefinition       = cfg.cellsByColumn(cell.column)
+    val rule: Rule                    = celldef.rule
     val failedMandatoryCheck: Boolean = Utils.failsMandatoryCheck(celldef.mandatory, cell)
-    val cellIsValid: Option[Boolean] = Utils.compareCellToRule(rule.regex, rule.isDate, cell.value)
+    val cellIsValid: Option[Boolean]  = Utils.compareCellToRule(rule.regex, rule.isDate, cell.value)
 
     def getValidationError: Some[ValidationError] = Some(ValidationError(cell, rule.id, rule.errorId, rule.errorMsg))
 
     cellIsValid match {
-      case Some(true) => None
+      case Some(true)  => None
       case Some(false) => getValidationError
-      case None => if (failedMandatoryCheck) getValidationError else None
+      case None        => if (failedMandatoryCheck) getValidationError else None
     }
   }
 
@@ -51,27 +51,32 @@ class DataValidator(validationConfig: Config) {
         row.cellsByColumn(cell.column)
       } match {
         case Success(cell) => cell
-        case Failure(_) =>
+        case Failure(_)    =>
           // This Failure indicates that the row being parsed did not contain a cell that is expected by the schema.
           Cell(cell.column, row.rowNum, "")
       }
     }
 
     val groupErrors: Seq[ValidationError] = cfg.groupRules.getOrElse(Nil).flatMap { rule =>
-      def cellValue(column: String): String = {
-        paddedCells.find(_.column == column).getOrElse(
-          throw new RuntimeException(
-            "[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules."
+      def cellValue(column: String): String =
+        paddedCells
+          .find(_.column == column)
+          .getOrElse(
+            throw new RuntimeException(
+              "[DataValidator][validateRow] The columns defined in fieldInfo did not have a definition for one of the columns in group-rules."
+            )
           )
-        ).value
-      }
+          .value
 
-      val ruleResult: Boolean = Utils.compareCellsToGroupRule(rule.expectedValue, cellValue(rule.flags.independent), cellValue(rule.flags.dependent))
+      val ruleResult: Boolean = Utils.compareCellsToGroupRule(
+        rule.expectedValue,
+        cellValue(rule.flags.independent),
+        cellValue(rule.flags.dependent)
+      )
       if (!ruleResult) {
 
-        paddedCells.filter(cell => rule.columnErrors.contains(cell.column)).map {
-          cell =>
-            ValidationError(cell, rule.id, rule.errorId, rule.columnErrors(cell.column))
+        paddedCells.filter(cell => rule.columnErrors.contains(cell.column)).map { cell =>
+          ValidationError(cell, rule.id, rule.errorId, rule.columnErrors(cell.column))
         }
       } else {
         Seq.empty
@@ -79,8 +84,8 @@ class DataValidator(validationConfig: Config) {
 
     }
 
-    val errorsFromCells: Seq[ValidationError] = paddedCells.flatMap {
-      cell => validateCell(cell)
+    val errorsFromCells: Seq[ValidationError] = paddedCells.flatMap { cell =>
+      validateCell(cell)
     }
 
     val allErrors: Seq[ValidationError] = groupErrors ++ errorsFromCells

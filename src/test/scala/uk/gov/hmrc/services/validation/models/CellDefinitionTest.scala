@@ -21,6 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class CellDefinitionTest extends AnyWordSpecLike with Matchers {
+
   val configString: String =
     """
       | {
@@ -49,4 +50,5 @@ class CellDefinitionTest extends AnyWordSpecLike with Matchers {
       )
     }
   }
+
 }

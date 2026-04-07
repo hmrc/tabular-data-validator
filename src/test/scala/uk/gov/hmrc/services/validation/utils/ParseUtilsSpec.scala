@@ -34,8 +34,8 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
           """
             |  id = "config string"
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        parser.getStringOpt(config, "id") shouldBe Some("config string")
+        val config: Config       = ConfigFactory.parseString(configString)
+        parser.getStringOpt(config, "id")      shouldBe Some("config string")
         parser.getStringOpt(config, "nothing") shouldBe None
       }
     }
@@ -54,7 +54,7 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |   no
             |   ]
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
+        val config: Config       = ConfigFactory.parseString(configString)
         parser.getStringSet(config, "listThing") shouldBe Set("yes", "no", "true", "false", "config string")
       }
     }
@@ -77,13 +77,13 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |        }
             |      }
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        val result = parser.getTryGroupRuleFlags(config, "flags")
+        val config: Config       = ConfigFactory.parseString(configString)
+        val result               = parser.getTryGroupRuleFlags(config, "flags")
         result match {
           case Success(output) =>
-            output.dependent shouldBe "C"
+            output.dependent   shouldBe "C"
             output.independent shouldBe "B"
-          case Failure(_) => fail("Failed to parse config for flags")
+          case Failure(_)      => fail("Failed to parse config for flags")
         }
       }
 
@@ -99,8 +99,8 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |        }
             |      }
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        val result = parser.getTryGroupRuleFlags(config, "flags")
+        val config: Config       = ConfigFactory.parseString(configString)
+        val result               = parser.getTryGroupRuleFlags(config, "flags")
         result match {
           case Success(_) =>
             fail("How did this find the config?")
@@ -123,8 +123,8 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |        }
             |      }
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        val result = parser.getTryGroupRuleFlags(config, "flags")
+        val config: Config       = ConfigFactory.parseString(configString)
+        val result               = parser.getTryGroupRuleFlags(config, "flags")
         result match {
           case Success(_) =>
             fail("How did this find the config?")
@@ -145,8 +145,10 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |     }
             |   ]
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        parser.getConfigList("listThing", config).toString shouldBe """List(Config(SimpleConfigObject({"bool":true,"name":"config string"})))"""
+        val config: Config       = ConfigFactory.parseString(configString)
+        parser
+          .getConfigList("listThing", config)
+          .toString shouldBe """List(Config(SimpleConfigObject({"bool":true,"name":"config string"})))"""
       }
     }
 
@@ -170,9 +172,16 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |    }
             |    ]
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
+        val config: Config       = ConfigFactory.parseString(configString)
         parser.parseConfigList("fieldInfo", config)(CellDefinition(_)) shouldBe
-          List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}"))))
+          List(
+            CellDefinition(
+              "D",
+              "Name",
+              mandatory = false,
+              Rule("error.4", "004", "message", isDate = false, Some("[0-9]{1,11}\\.[0-9]{2}"))
+            )
+          )
       }
     }
 
@@ -196,10 +205,19 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |    }
             |    ]
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
+        val config: Config       = ConfigFactory.parseString(configString)
         parser.parseConfigListOpt("fieldInfo", config)(CellDefinition(_)) shouldBe
-          Some(List(CellDefinition("D", "Name", false, Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}")))))
-        parser.parseConfigListOpt("nope", config)(CellDefinition(_)) shouldBe None
+          Some(
+            List(
+              CellDefinition(
+                "D",
+                "Name",
+                mandatory = false,
+                Rule("error.4", "004", "message", isDate = false, Some("[0-9]{1,11}\\.[0-9]{2}"))
+              )
+            )
+          )
+        parser.parseConfigListOpt("nope", config)(CellDefinition(_))      shouldBe None
       }
     }
 
@@ -217,9 +235,9 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |    errorId = "004"
             |  }
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        parser.parseConfig("object", config) { errorConfig => Rule(errorConfig) } shouldBe
-          Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}"))
+        val config: Config       = ConfigFactory.parseString(configString)
+        parser.parseConfig("object", config)(errorConfig => Rule(errorConfig)) shouldBe
+          Rule("error.4", "004", "message", isDate = false, Some("[0-9]{1,11}\\.[0-9]{2}"))
       }
     }
 
@@ -237,11 +255,12 @@ class ParseUtilsSpec extends AnyWordSpecLike with Matchers {
             |    errorId = "004"
             |  }
         """.stripMargin
-        val config: Config = ConfigFactory.parseString(configString)
-        parser.parseConfigOpt("object", config) { errorConfig => Rule(errorConfig) } shouldBe
-          Some(Rule("error.4", "004", "message", false, Some("[0-9]{1,11}\\.[0-9]{2}")))
-        parser.parseConfigOpt("invalid", config) { errorConfig => Rule(errorConfig) } shouldBe None
+        val config: Config       = ConfigFactory.parseString(configString)
+        parser.parseConfigOpt("object", config)(errorConfig => Rule(errorConfig))  shouldBe
+          Some(Rule("error.4", "004", "message", isDate = false, Some("[0-9]{1,11}\\.[0-9]{2}")))
+        parser.parseConfigOpt("invalid", config)(errorConfig => Rule(errorConfig)) shouldBe None
       }
     }
   }
+
 }

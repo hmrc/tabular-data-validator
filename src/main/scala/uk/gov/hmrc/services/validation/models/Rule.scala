@@ -21,34 +21,26 @@ import uk.gov.hmrc.services.validation.utils.ParseUtils._
 
 import scala.util.Try
 
-case class Rule(id: String,
-                errorId: String,
-                errorMsg: String,
-                isDate: Boolean,
-                regex: Option[String]) {
+case class Rule(id: String, errorId: String, errorMsg: String, isDate: Boolean, regex: Option[String]) {
   require(regex.isDefined ^ isDate)
 }
 
 object Rule {
-  val RULE_ID = "id"
-  val ERROR_ID = "errorId"
+  val RULE_ID   = "id"
+  val ERROR_ID  = "errorId"
   val DATE_FLAG = "isDate"
   val ERROR_MSG = "errorMsg"
-  val REGEX = "regex"
+  val REGEX     = "regex"
 
   def apply(ruleConfig: Config): Rule = {
-    val id: String = ruleConfig.getString(RULE_ID)
+    val id: String      = ruleConfig.getString(RULE_ID)
     val errorId: String = ruleConfig.getString(ERROR_ID)
     val isDate: Boolean = Try(ruleConfig.getBoolean(DATE_FLAG)).getOrElse(false)
 
-    val errorMsg: String = ruleConfig.getString(ERROR_MSG)
+    val errorMsg: String      = ruleConfig.getString(ERROR_MSG)
     val regex: Option[String] = getStringOpt(ruleConfig, REGEX)
 
-    Rule(id = id,
-      errorId = errorId,
-      isDate = isDate,
-      errorMsg = errorMsg,
-      regex = regex
-    )
+    Rule(id = id, errorId = errorId, isDate = isDate, errorMsg = errorMsg, regex = regex)
   }
+
 }

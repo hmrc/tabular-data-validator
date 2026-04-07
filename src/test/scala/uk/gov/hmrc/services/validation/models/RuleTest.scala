@@ -31,14 +31,14 @@ class RuleTest extends AnyWordSpecLike with Matchers {
           |  errorId = "001"
           |  isDate = true
     """.stripMargin
-      val config: Config = ConfigFactory.parseString(errorConfig)
-      val rule = Rule(config)
+      val config: Config      = ConfigFactory.parseString(errorConfig)
+      val rule                = Rule(config)
 
-      rule.id shouldBe "error.1"
+      rule.id       shouldBe "error.1"
       rule.errorMsg shouldBe "This is an error message"
-      rule.errorId shouldBe "001"
-      rule.isDate shouldBe true
-      rule.regex shouldBe None
+      rule.errorId  shouldBe "001"
+      rule.isDate   shouldBe true
+      rule.regex    shouldBe None
     }
 
     "be correctly instantiated from valid config with isDate set to false" in {
@@ -51,14 +51,14 @@ class RuleTest extends AnyWordSpecLike with Matchers {
           |  regex = "[0-9a-zA-Z]*"
           |
     """.stripMargin
-      val config: Config = ConfigFactory.parseString(errorConfig)
-      val rule = Rule(config)
+      val config: Config      = ConfigFactory.parseString(errorConfig)
+      val rule                = Rule(config)
 
-      rule.id shouldBe "error.2"
+      rule.id       shouldBe "error.2"
       rule.errorMsg shouldBe "This is another error message"
-      rule.errorId shouldBe "002"
-      rule.isDate shouldBe false
-      rule.regex shouldBe Some("[0-9a-zA-Z]*")
+      rule.errorId  shouldBe "002"
+      rule.isDate   shouldBe false
+      rule.regex    shouldBe Some("[0-9a-zA-Z]*")
     }
 
     "be correctly instantiated from valid config with isDate field missing" in {
@@ -70,14 +70,14 @@ class RuleTest extends AnyWordSpecLike with Matchers {
           |  regex = "[0-9a-zA-Z]*"
           |
     """.stripMargin
-      val config: Config = ConfigFactory.parseString(errorConfig)
-      val rule = Rule(config)
+      val config: Config      = ConfigFactory.parseString(errorConfig)
+      val rule                = Rule(config)
 
-      rule.id shouldBe "error.3"
+      rule.id       shouldBe "error.3"
       rule.errorMsg shouldBe "This is a third error message"
-      rule.errorId shouldBe "003"
-      rule.isDate shouldBe false
-      rule.regex shouldBe Some("[0-9a-zA-Z]*")
+      rule.errorId  shouldBe "003"
+      rule.isDate   shouldBe false
+      rule.regex    shouldBe Some("[0-9a-zA-Z]*")
     }
 
     "fail to be instantiated from invalid config with isDate field set to true and regex present" in {
@@ -90,7 +90,7 @@ class RuleTest extends AnyWordSpecLike with Matchers {
           |  regex = "[0-9a-zA-Z]*"
           |
     """.stripMargin
-      val config: Config = ConfigFactory.parseString(errorConfig)
+      val config: Config      = ConfigFactory.parseString(errorConfig)
       an[IllegalArgumentException] shouldBe thrownBy(Rule(config))
     }
 
@@ -102,7 +102,7 @@ class RuleTest extends AnyWordSpecLike with Matchers {
           |  errorId = "002"
           |
     """.stripMargin
-      val config: Config = ConfigFactory.parseString(errorConfig)
+      val config: Config      = ConfigFactory.parseString(errorConfig)
       an[IllegalArgumentException] shouldBe thrownBy(Rule(config))
     }
   }

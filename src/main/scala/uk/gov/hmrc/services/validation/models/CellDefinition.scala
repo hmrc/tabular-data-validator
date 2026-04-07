@@ -22,22 +22,19 @@ import uk.gov.hmrc.services.validation.utils.ParseUtils.parseConfig
 case class CellDefinition(column: String, cellName: String, mandatory: Boolean, rule: Rule)
 
 object CellDefinition {
-  val COLUMN = "column"
+  val COLUMN    = "column"
   val CELL_NAME = "cellName"
   val MANDATORY = "mandatory"
   val CELL_RULE = "error"
 
   def apply(cellConfig: Config): CellDefinition = {
-    val column = cellConfig.getString(COLUMN)
+    val column   = cellConfig.getString(COLUMN)
     val cellName = cellConfig.getString(CELL_NAME)
-    val manda = cellConfig.getBoolean(MANDATORY)
+    val manda    = cellConfig.getBoolean(MANDATORY)
 
-    val cellRule: Rule = parseConfig(CELL_RULE, cellConfig) {errorConfig => Rule(errorConfig)}
+    val cellRule: Rule = parseConfig(CELL_RULE, cellConfig)(errorConfig => Rule(errorConfig))
 
-    CellDefinition(column = column,
-      cellName = cellName,
-      mandatory = manda,
-      rule = cellRule
-    )
+    CellDefinition(column = column, cellName = cellName, mandatory = manda, rule = cellRule)
   }
+
 }

@@ -21,6 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
 class GroupRuleTest extends AnyWordSpecLike with Matchers {
+
   def configString(flags: Boolean = true): String =
     s"""{
       |      id="mandatoryCD"
@@ -50,7 +51,10 @@ class GroupRuleTest extends AnyWordSpecLike with Matchers {
     }
     "not parse if given config without flags" in {
       val configIllegal: Config = ConfigFactory.parseString(configString(flags = false))
-      intercept[ConfigException](GroupRule(configIllegal)).getMessage shouldBe "String: 1: No configuration setting found for key 'flags'"
+      intercept[ConfigException](
+        GroupRule(configIllegal)
+      ).getMessage shouldBe "String: 1: No configuration setting found for key 'flags'"
     }
   }
+
 }
