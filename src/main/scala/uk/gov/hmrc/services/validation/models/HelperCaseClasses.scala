@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.services.validation.models
 
-
 case class Row(rowNum: Int, cells: Seq[Cell]) {
   require(cells.forall(_.row == rowNum))
 
-  val cellsByColumn: Map[String, Cell] = cells.map { c => c.column -> c }.toMap
+  val cellsByColumn: Map[String, Cell] = cells.map(c => c.column -> c).toMap
 }
 
 case class Cell(column: String, row: Int, value: String)
@@ -28,4 +27,3 @@ case class Cell(column: String, row: Int, value: String)
 case class ValidationError(cell: Cell, ruleId: String, errorId: String, errorMsg: String)
 
 case class GroupRuleFlags(independent: String, dependent: String)
-

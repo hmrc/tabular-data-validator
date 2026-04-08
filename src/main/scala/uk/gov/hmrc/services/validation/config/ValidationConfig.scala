@@ -20,10 +20,9 @@ import com.typesafe.config.Config
 import uk.gov.hmrc.services.validation.utils.ParseUtils._
 import uk.gov.hmrc.services.validation.models.{CellDefinition, GroupRule}
 
-
 class ValidationConfig(validationConfig: Config) {
 
-  val cells: List[CellDefinition] = parseConfigList("fieldInfo", validationConfig){CellDefinition(_)}
+  val cells: List[CellDefinition]                = parseConfigList("fieldInfo", validationConfig)(CellDefinition(_))
   val cellsByColumn: Map[String, CellDefinition] = cells.map(c => c.column -> c).toMap
-  val groupRules: Option[List[GroupRule]] = parseConfigListOpt("group-rules", validationConfig){GroupRule(_)}
+  val groupRules: Option[List[GroupRule]]        = parseConfigListOpt("group-rules", validationConfig)(GroupRule(_))
 }

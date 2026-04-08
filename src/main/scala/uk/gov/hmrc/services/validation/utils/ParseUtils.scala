@@ -31,13 +31,14 @@ object ParseUtils {
 
   def getTryGroupRuleFlags(config: Config, path: String): Try[GroupRuleFlags] = Try {
     val independent: String = config.getString(s"$path.independent")
-    val dependent: String = config.getString(s"$path.dependent")
+    val dependent: String   = config.getString(s"$path.dependent")
     GroupRuleFlags(independent, dependent)
   }
 
   def getConfigList(path: String, config: Config): List[Config] = config.getConfigList(path).asScala.toList
 
-  def parseConfigList[A](path: String, config: Config)(factory: Config => A): List[A] = getConfigList(path, config).map(factory)
+  def parseConfigList[A](path: String, config: Config)(factory: Config => A): List[A] =
+    getConfigList(path, config).map(factory)
 
   def parseConfigListOpt[A](path: String, config: Config)(factory: Config => A): Option[List[A]] =
     if (config.hasPath(path)) Some(parseConfigList(path, config)(factory)) else None

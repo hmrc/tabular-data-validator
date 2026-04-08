@@ -23,7 +23,8 @@ import uk.gov.hmrc.services.validation.models.Cell
 import scala.util.Try
 
 object Utils {
-  def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Option[Boolean] = {
+
+  def compareCellToRule(regex: Option[String], isDate: Boolean, cellValue: String): Option[Boolean] =
     if (cellValue.trim.isEmpty) {
       None
     } else if (isDate) {
@@ -31,11 +32,9 @@ object Utils {
     } else {
       Some(cellValue.matches(regex.get))
     }
-  }
 
-  def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean = {
+  def compareCellsToGroupRule(flagValue: String, cellToCheck: String, dependentCellValue: String): Boolean =
     if (cellToCheck.matches("^" + flagValue + "$")) dependentCellValue.nonEmpty else true
-  }
 
   def failsMandatoryCheck(isMandatory: Boolean, cell: Cell): Boolean =
     isMandatory && cell.value.trim.isEmpty
